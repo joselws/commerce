@@ -1,0 +1,131 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}Listing{% endblock %}
+
+{% block body %}
+    <!-- Listing information and watchlist logic -->
+    <h2>{{ listing.name }}</h2>
+    <p>Category: {{ listing.category }}</p>
+    <p>Posted by: <strong>{{ listing.user.username }}</strong></p>
+    <p>{{ listing.date }}</p>
+
+    <!-- Only show the watchlist options for authenticated users
+        whose listings don't belong to them (you can't watchlist a
+        listing you created) and on active listings -->
+    {% if user.is_authenticated and listing.user.id is not user.id and listing.active %}
+        <form action="{% url 'watch' %}" method="POST">
+            {% csrf_token %}
+            <!-- Send in the data about the user and the listing -->
+            <input style="display:none" type="hidden" name="user" value="{{ user.id }}" readonly /> 
+            <input style="display:none" type="hidden" name="listing" value="{{ listing.id }}" readonly />    
+            <!-- Checks if the current user is in the list of all people who has
+                that have this item in their watchlist -->
+            {% if user in listing.watchlist.all %}
+                <button type="submit">Remove from watchlist</button>
+            {% else %}
+                <button type="submit">Add to watchlist</button>
+            {% endif %}
+        </form>
+    {% endif %}
+
+    <!-- Only show the 'close/open listing' option to the user who made the listing -->
+    {% if user.is_authenticated and listing.user.id is user.id %}
+        <form action="{% url 'listing' listing.id %}" method="POST">
+            {% csrf_token %}
+            <!-- Send in the data about the listing -->
+            <input style="display:none" type="hidden" name="listing" value="{{ listing.id }}" readonly />    
+            <!-- Conditionally render a 'close/open listing'
+                depending on whether the listing is active -->
+            {% if listing.active %}
+                <input type="submit" value="Close Listing" />
+            {% else %}
+                <input type="submit" value="Open Listing" />
+            {% endif %}
+        </form>
+    {% endif %}
+
+    {% if listing.image_url %}
+        <img src="{{ listing.image_url }}" />
+    {% endif %}
+    <p>Starting price: <strong>${{ listing.price }}</strong></p>
+    <p>{{ listing.description }}</p>
+    
+    <!-- End of listing info -->
+    
+    <!-- Bid section -->
+    {% if not listing.active %}
+        <strong>Listing is closed.</strong>
+    {% endif %}
+    <h3>Bids</h3>
+    <!-- Show winner of the bid if the listing is closed and there are existing bids -->
+    {% if not listing.active and max_bid %}
+        <strong>Winner of the bid with a bid of ${{ max_bid.bid }}: {{ max_bid.user.username }}!</strong>
+    {% endif %}
+    {% if bids %}
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Bid($)</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bid in bids %}
+                    <tr>
+                        <td>{{ bid.user }}</td>
+                        <td>{{ bid.bid }}</td>
+                        <td>{{ bid.bid_date }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p><strong>No bids yet for this item.</strong></p>
+    {% endif %}
+    
+    <!-- Only signed in users (except for the one that created the listing) may bid
+        but only on active listings -->
+    {% if user.is_authenticated and listing.user.id is not user.id and listing.active %}
+        <form action="{% url 'bid' %}" method="POST">
+            {% csrf_token %}
+            <!-- Send to backend user and listing data -->
+            <input type="hidden" name="user" value="{{ user.id }}" readonly />
+            <input type="hidden" name="listing" value="{{ listing.id }}" readonly />
+            <label for="bid">Place your bid($): </label>
+            <input type="number" name="bid" min="{{ next_bid }}" placeholder="{{ next_bid }}" required />
+            <input type="submit" value="Add bid" />
+        </form>
+    {% endif %}
+
+    <!-- End of bid section -->
+
+    <!-- Comments section -->
+    <h3>Comments</h3>
+    {% for comment in comments %}
+        <p><strong>User:</strong> {{ comment.user }} - <strong>Date:</strong> {{ comment.date }}</strong></p>
+        <p>{{ comment.comment }}</p>
+        <br />
+    {% empty %}
+        <p><strong>No comments yet for this item.</strong></p>
+    {% endfor %}
+
+    <!-- Render the comment form only in active listings and on authenticated users -->
+    {% if user.is_authenticated and listing.active %}
+        <form method="POST" action="{% url 'comment' %}">
+            {% csrf_token %}
+            <!-- Send to backend user and listing data -->
+            <input type="hidden" name="user" value="{{ user.id }}" readonly />
+            <input type="hidden" name="listing" value="{{ listing.id }}" readonly />
+            <label for="comment">Insert a comment: </label>
+            <textarea name="comment" id="comment" placeholder="Insert your comment."
+                maxlength="1000" rows="6" cols="50" required></textarea>
+            <br />
+            <input type="submit" value="Add comment" />
+        </form>
+    {% endif %}
+
+    <!-- End of comments section -->
+
+    <a href="{% url 'index' %}">Go back</a>
+{% endblock %}

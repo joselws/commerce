@@ -1,0 +1,27 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+    <!-- Show this message if the user just created a new listing -->
+    {% if message %}
+        <strong>Listing Created!</strong>
+    {% endif %}
+
+    <h2>Active Listings</h2>
+    <!-- Render all available listings -->
+    {% for listing in listings %}
+        <h3><a href="{% url 'listing' listing.id %}">{{ listing.name }}</a></h3>
+        <h4>Starting price: ${{ listing.price }}</h4>
+        <p><strong>{{ listing.user.username }}</strong></p>
+        <p><strong>{{ listing.category }}</strong></p>
+        {% if listing.image_url %}
+            <img src="{{ listing.image_url }}" alt="No Image" />
+        {% endif %}
+        <p>{{ listing.description }}</p>
+        <p>{{ listing.date }}</p>
+        <br />
+        <hr />
+    {% endfor %}
+
+{% endblock %}

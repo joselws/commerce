@@ -1,0 +1,62 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{% block title %}{% endblock %}</title>
+        <link href="{% static 'auctions/bootstrap/dist/css/bootstrap.min.css'%}" rel="stylesheet" />
+        <link href="{% static 'auctions/styles.css' %}" rel="stylesheet" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </head>
+    <body>
+        <header class="container">
+            <div class="row align-items-center text-center">
+                <div class="col-12 col-md-6 offset-md-3">
+                    <h1>Auctions</h1>
+                </div>
+            </div>
+
+            <div class="row align-items-center text-center">
+                <div class="col-12 col-md-6 offset-md-3">
+                    {% if user.is_authenticated %}
+                        <p>Welcome <strong>{{ user.username }}!</strong></p>
+                    {% else %}
+                        <p>Not signed in.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <ul class="nav">
+                    <li class="nav-item col-6 col-md text-center">
+                        <a class="nav-link" href="{% url 'index' %}">Active Listings</a>
+                    </li>
+                    <li class="nav-item col-6 col-md text-center">
+                        <a class="nav-link" href="{% url 'category' %}">Categories</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item col text-center">
+                            <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                        </li>
+                        <li class="nav-item col text-center">
+                            <a class="nav-link" href="{% url 'create' %}">New Listing</a>
+                        </li>
+                        <li class="nav-item col text-center">
+                            <a class="nav-link" href="{% url 'watchlist' user.id %}">Watchlist</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item col text-center">
+                            <a class="nav-link" href="{% url 'login' %}">Log In</a>
+                        </li>
+                        <li class="nav-item col text-center">
+                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+            <hr>
+        </header>
+        {% block body %}
+        {% endblock %}
+    </body>
+</html>
