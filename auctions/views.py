@@ -5,14 +5,14 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 
-from .models import User, Category, Listing, Bid, Comment
+from .models import User, Category, Item, Bid, Comment
 
 
 def index(request):
-    """Main page, it displays all active listings available"""
-    listings = Listing.objects.filter(active=True).order_by('id').reverse()
+    """Main page, it displays all active items available"""
+    items = Item.objects.filter(active=True).order_by('id').reverse()
     return render(request, "auctions/index.html", {
-        'listings': listings  #Show from the most recent to the oldest
+        'items': items  #Show from the most recent to the oldest
     })
 
 
@@ -70,7 +70,7 @@ def register(request):
 
 @login_required()
 def create(request):
-    """Create a new listing page"""
+    """Create a new item page"""
     #Make available for all render methods all categories as context
     categories = Category.objects.all()
 
@@ -87,7 +87,7 @@ def create(request):
         
         #The user might have input a non-number value
         try:
-            price = round(float(request.POST['price']), 2)
+            starting_price = round(float(request.POST['price']), 2)
 
         #ValueError arises if we try to convert a non-valid string into a float
         #i.e: words to float
@@ -98,9 +98,9 @@ def create(request):
                 'categories': categories
             })
 
-        #If all went well, create the listing and redirect the user to the index page
-        Listing.objects.create(name=name, description=description, price=price, 
-            image_url=image, category=category, user=user)
+        #If all went well, create the item and redirect the user to the index page
+        Item.objects.create(name=name, description=description, starting_price=starting_price, 
+            image=image, category=category, user=user)
         return HttpResponseRedirect(reverse("index"))
 
 
@@ -110,36 +110,36 @@ def create(request):
     })
 
 
-def listing(request, listing_id):
-    """ Individual page for each listing """
-    # Get the particular listing we are rendering, along with its bids and comments
-    listing = Listing.objects.get(pk=listing_id)
+def item(request, item_id):
+    """ Individual page for each item """
+    # Get the particular item we are rendering, along with its bids and comments
+    item = Item.objects.get(pk=item_id)
 
-    # If we are going to open or close the listing
+    # If we are going to open or close the item
     if request.method == "POST":
         # Switch its value between True and False
-        listing.active = not listing.active
-        listing.save()
-        return HttpResponseRedirect(reverse('listing', args=(listing.id,)))
+        item.active = not item.active
+        item.save()
+        return HttpResponseRedirect(reverse('item', args=(item.id,)))
 
     # Get the bids in descending order by bid value
     # Django by default arranges it in ascending order, so we reverse it
-    bids = Bid.objects.filter(item=listing).order_by('bid').reverse()
-    comments = Comment.objects.filter(item=listing).order_by('id').reverse()
+    bids = Bid.objects.filter(item=item).order_by('bid').reverse()
+    comments = Comment.objects.filter(item=item).order_by('id').reverse()
     
-    # Get the max bid object of the listing, 
+    # Get the max bid object of the item, 
     # which is the first one of the list as it was previously ordered by bid value
     if bids:
         max_bid = bids.first()  
         next_bid = max_bid.bid + 1      # Useful for defining html numeric input attributes
         
-    # If no bids exist, then the next bid is the starting price of the listing
+    # If no bids exist, then the next bid is the starting price of the item
     else:
-        next_bid = float(listing.price) + 1
+        next_bid = float(item.price) + 1
         max_bid = None
 
-    return render(request, 'auctions/listing.html', {
-            'listing': listing,
+    return render(request, 'auctions/item.html', {
+            'item': item,
             'bids': bids,
             'comments': comments,
             'max_bid': max_bid,
@@ -148,70 +148,70 @@ def listing(request, listing_id):
 
 
 def watch(request):
-    """ Handles the watchlist addition and deletion from users in a listing """
+    """ Handles the watchlist addition and deletion from users in a item """
     if request.method == "POST":
-        # Get the listing and the user
-        listing = Listing.objects.get(pk=int(request.POST['listing']))
+        # Get the item and the user
+        item = Item.objects.get(pk=int(request.POST['item']))
         user = User.objects.get(pk=int(request.POST['user']))
 
-        #Remove the user from this listing watchlist if he/she is already in
-        if user in listing.watchlist.all():
-            listing.watchlist.remove(user)
+        #Remove the user from this item watchlist if he/she is already in
+        if user in item.watchlist.all():
+            item.watchlist.remove(user)
         #Otherwise, add the user to the watchlist of this item
         else:
-            listing.watchlist.add(user)
+            item.watchlist.add(user)
 
-    # Redirect the user back to the listing page
-    return HttpResponseRedirect(reverse('listing', args=(listing.id,))) 
+    # Redirect the user back to the item page
+    return HttpResponseRedirect(reverse('item', args=(item.id,))) 
 
 
 def bid(request):
-    """ Handles the bid POST logic for each listing """
-    # Get the listing and the user from the form data to create the bid instance
+    """ Handles the bid POST logic for each item """
+    # Get the item and the user from the form data to create the bid instance
     if request.method == "POST":
-        listing = Listing.objects.get(pk=int(request.POST['listing']))
+        item = Item.objects.get(pk=int(request.POST['item']))
         user = User.objects.get(pk=int(request.POST['user']))
 
-        # Catch any potential input error, if so, redirects the user to the listing page
+        # Catch any potential input error, if so, redirects the user to the item page
         try:
             # Make sure to format the bid entered by the user to 2 decimals
             bid = round(float(request.POST['bid']), 2)
 
         except:
-            return HttpResponseRedirect(reverse('listing', args=(listing.id,)))
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
         
         # If there are previously existing bids:
         # Check with the highest bids and the starting price
-        bids = listing.bids.all().order_by('bid').reverse()
+        bids = Item.bids.all().order_by('bid').reverse()
         # And its starting price
         if bids:
-            if bid > bids[0].bid and bid > listing.price:
-                Bid.objects.create(bid=bid, item=listing, user=user)
+            if bid > bids[0].bid and bid > item.price:
+                Bid.objects.create(bid=bid, item=item, user=user)
 
-            return HttpResponseRedirect(reverse('listing', args=(listing.id,)))
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
         
         else:
-            if bid > listing.price:
-                Bid.objects.create(bid=bid, item=listing, user=user)
+            if bid > item.price:
+                Bid.objects.create(bid=bid, item=item, user=user)
 
-            return HttpResponseRedirect(reverse('listing', args=(listing.id,)))
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
 
     return HttpResponseRedirect(reverse('index'))
                 
 
 def comment(request):
-    """ Handles the comment POST logic for a listing """
+    """ Handles the comment POST logic for a item """
     if request.method == "POST":
-        listing = Listing.objects.get(pk=int(request.POST['listing']))
+        item = Item.objects.get(pk=int(request.POST['item']))
         user = User.objects.get(pk=int(request.POST['user']))
         # Create comment if the user didn't submit an empty comment
         if request.POST['comment']:
             comment = request.POST['comment']
-            Comment.objects.create(comment=comment, user=user, item=listing)
-            return HttpResponseRedirect(reverse('listing', args=(listing.id,)))
+            Comment.objects.create(comment=comment, user=user, item=item)
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
         
         else:
-            return HttpResponseRedirect(reverse('listing', args=(listing.id,)))
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
 
     return HttpResponseRedirect(reverse('index'))
 
@@ -220,10 +220,10 @@ def comment(request):
 def watchlist(request, user_id):
     """ Handles the 'visit watchlist' page """
     user = User.objects.get(pk=user_id)
-    # Get all the listings on the user watchlist
-    listings = user.watchlist.all().order_by('id').reverse()
+    # Get all the items on the user watchlist
+    items = user.watchlist.all().order_by('id').reverse()
     return render(request, "auctions/watchlist.html", {
-        'listings': listings
+        'items': items
     })
 
 
@@ -236,12 +236,12 @@ def category(request):
 
 
 def category_page(request, category_name):
-    """ Displays all active listings for a given category """
+    """ Displays all active items for a given category """
     # Get the category object from the name given in the URL
     category = Category.objects.get(category=category_name)
-    # Get all active listings from the given category from the most recent
-    listings = Listing.objects.filter(category=category, active=True).order_by('id').reverse()
+    # Get all active items from the given category from the most recent
+    items = Item.objects.filter(category=category, active=True).order_by('id').reverse()
     return render(request, "auctions/category_page.html", {
-        'listings': listings,
+        'items': items,
         'category_name': category_name
     })

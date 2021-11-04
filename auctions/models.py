@@ -7,7 +7,7 @@ class User(AbstractUser):
     """Has default 'username' 'password' and 'email' attributes"""
 
     def __str__(self):
-        return f"{self.username}"
+        return self.username
 
 
 class Category(models.Model):
@@ -16,10 +16,10 @@ class Category(models.Model):
 	category = models.CharField(max_length=20, unique=True)
 	
 	def __str__(self):
-		return f"{self.category}"
+		return self.category
 
 
-class Listing(models.Model):
+class Item(models.Model):
 	"""Models an item in the auction"""
 	name = models.CharField(max_length=64)
 	
@@ -27,24 +27,24 @@ class Listing(models.Model):
 	description = models.TextField(blank=True)
 
 	#initial price set on an item
-	price = models.DecimalField(max_digits=10, decimal_places=2)
+	starting_price = models.DecimalField(max_digits=10, decimal_places=2)
 	
-	#Don't delete the listing if the category it belongs to does
+	#Don't delete the item if the category it belongs to does
 	category = models.ForeignKey(Category, blank=True, on_delete=models.RESTRICT, default="Other")
 	
-	#if an user gets deleted, delete all Listings associated with him
+	#if an user gets deleted, delete all items associated with him
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	
-	#date the listing is created
+	#date the item is created
 	date = models.DateField(auto_now=True)
 	
 	#users can optionally add an image for their item, and they're sent to 'media/item_pics' folder
-	image_url = models.URLField(blank=True, max_length=200)
+	image = models.ImageField(blank=True, max_length=200)
 
-	#Field that stores the name of users that have any listing as their watchlist
+	#Field that stores the name of users that have any item as their watchlist
 	watchlist = models.ManyToManyField(User, related_name="watchlist", blank=True)
 
-	#Is the listing active? True by default
+	#Is the item active? True by default
 	active = models.BooleanField(default=True)
 	
 	def __str__(self):
@@ -52,14 +52,14 @@ class Listing(models.Model):
 
 
 class Bid(models.Model):
-	"""The bid for every Listing in the auction"""
+	"""The bid for every item in the auction"""
 	bid = models.DecimalField(max_digits=10, decimal_places=2)
 	
 	#automatically added on creation
 	bid_date = models.DateField(auto_now=True)
 	
 	#the specific item on which the bid is made
-	item = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="bids")
+	item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="bids")
 	
 	#person doing the bid
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -69,7 +69,7 @@ class Bid(models.Model):
 
 
 class Comment(models.Model):
-	"""Any comments inside a listing"""
+	"""Any comments inside a item"""
 	#User doing the comment
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	
@@ -80,7 +80,7 @@ class Comment(models.Model):
 	date = models.DateField(auto_now=True)
 	
 	#the specific item the comment pertains to
-	item = models.ForeignKey(Listing, on_delete=models.CASCADE)
+	item = models.ForeignKey(Item, on_delete=models.CASCADE)
 	
 	def __str__(self):
 		return f"Comment by {self.user.username} on {self.item.name} at {self.date}"
