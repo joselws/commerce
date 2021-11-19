@@ -1,0 +1,120 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}Item{% endblock %}
+
+{% block body %}
+    <!-- item information and watchlist logic -->
+    <h2>{{ item.name }}</h2>
+    <p>Category: {{ item.category }}</p>
+    <p>Posted by: <strong>{{ item.user.username }}</strong></p>
+    <p>{{ item.created_at }}</p>
+
+    <!-- Only show the watchlist options for authenticated users
+        whose items don't belong to them (you can't watchlist a
+        item you created) and on active items -->
+    {% if user.is_authenticated and item.user.id is not user.id and item.active %}
+        <form action="{% url 'watch' item.id %}" method="POST">
+            {% csrf_token %}
+            <!-- Checks if the current user is in the list of all people who has
+                that have this item in their watchlist -->
+            {% if user in item.watchlist.all %}
+                <button type="submit">Remove from watchlist</button>
+            {% else %}
+                <button type="submit">Add to watchlist</button>
+            {% endif %}
+        </form>
+    {% endif %}
+
+    <!-- Only show the 'close/open item' option to the user who made the item -->
+    {% if user.is_authenticated and item.user.id is user.id %}
+        <form action="{% url 'item' item.id %}" method="POST">
+            {% csrf_token %}
+            <!-- Conditionally render a 'close/open item'
+                depending on whether the item is active -->
+            {% if item.active %}
+                <input type="submit" value="Close item" />
+            {% else %}
+                <input type="submit" value="Open item" />
+            {% endif %}
+        </form>
+    {% endif %}
+
+    {% if item.image %}
+        <img src="{{ item.image.url }}" />
+    {% endif %}
+    <p>Starting price: <strong>${{ item.starting_price }}</strong></p>
+    <p>{{ item.description }}</p>
+    
+    <!-- End of item info -->
+    
+    <!-- Bid section -->
+    {% if not item.active %}
+        <strong>item is closed.</strong>
+    {% endif %}
+    <h3>Bids</h3>
+    <!-- Show winner of the bid if the item is closed and there are existing bids -->
+    {% if not item.active and max_bid %}
+        <strong>Winner of the bid with a bid of ${{ max_bid.bid }}: {{ max_bid.user.username }}!</strong>
+    {% endif %}
+    {% if bids %}
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Bid($)</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bid in bids %}
+                    <tr>
+                        <td>{{ bid.user }}</td>
+                        <td>{{ bid.bid }}</td>
+                        <td>{{ bid.bid_date }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p><strong>No bids yet for this item.</strong></p>
+    {% endif %}
+    
+    <!-- Only signed in users (except for the one that created the item) may bid
+        but only on active items -->
+    {% if user.is_authenticated and item.user.id is not user.id and item.active %}
+        <form action="{% url 'bid' item.id %}" method="POST">
+            {% csrf_token %}
+            <label for="bid">Place your bid($): </label>
+            <input type="number" name="bid" min="{{ next_bid }}" placeholder="{{ next_bid }}" required />
+            <input type="submit" value="Add bid" />
+        </form>
+    {% endif %}
+
+    <!-- End of bid section -->
+
+    <!-- Comments section -->
+    <h3>Comments</h3>
+    {% for comment in comments %}
+        <p><strong>User:</strong> {{ comment.user }} - <strong>Date:</strong> {{ comment.date }}</strong></p>
+        <p>{{ comment.comment }}</p>
+        <br />
+    {% empty %}
+        <p><strong>No comments yet for this item.</strong></p>
+    {% endfor %}
+
+    <!-- Render the comment form only in active items and on authenticated users -->
+    {% if user.is_authenticated and item.active %}
+        <form method="POST" action="{% url 'comment' item.id %}">
+            {% csrf_token %}
+            <label for="comment">Insert a comment: </label>
+            <textarea name="comment" id="comment" placeholder="Insert your comment."
+                maxlength="1000" rows="6" cols="50" required></textarea>
+            <br />
+            <input type="submit" value="Add comment" />
+        </form>
+    {% endif %}
+
+    <!-- End of comments section -->
+
+    <a href="{% url 'index' %}">Go back</a>
+{% endblock %}

@@ -5,55 +5,51 @@
     <head>
         <title>{% block title %}{% endblock %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link type="text/css" rel="stylesheet" href="{% static 'styles.css' %}" />
     </head>
     <body>
-        <header class="container">
-            <div class="row align-items-center text-center">
-                <div class="col-12 col-md-6 offset-md-3">
-                    <h1>Auctions</h1>
-                </div>
-            </div>
+        <header>
+            <h1>Auctions</h1>
 
-            <div class="row align-items-center text-center">
-                <div class="col-12 col-md-6 offset-md-3">
-                    {% if user.is_authenticated %}
-                        <p>Welcome <strong>{{ user.username }}!</strong></p>
-                    {% else %}
-                        <p>Not signed in.</p>
-                    {% endif %}
-                </div>
+            <div>
+                {% if user.is_authenticated %}
+                    <p>Welcome <strong>{{ user.username }}!</strong></p>
+                {% else %}
+                    <p>Not signed in.</p>
+                {% endif %}
             </div>
             
-            <div class="row">
-                <ul class="nav">
-                    <li class="nav-item col-6 col-md text-center">
-                        <a class="nav-link" href="{% url 'index' %}">Active Listings</a>
+            <div>
+                <ul>
+                    <li>
+                        <a href="{% url 'index' %}">Active Items</a>
                     </li>
-                    <li class="nav-item col-6 col-md text-center">
-                        <a class="nav-link" href="{% url 'category' %}">Categories</a>
+                    <li>
+                        <a href="{% url 'category' %}">Categories</a>
                     </li>
                     {% if user.is_authenticated %}
-                        <li class="nav-item col text-center">
-                            <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+                        <li>
+                            <a href="{% url 'logout' %}">Log Out</a>
                         </li>
-                        <li class="nav-item col text-center">
-                            <a class="nav-link" href="{% url 'create' %}">New Listing</a>
+                        <li>
+                            <a href="{% url 'create' %}">New Item</a>
                         </li>
-                        <li class="nav-item col text-center">
-                            <a class="nav-link" href="{% url 'watchlist' user.id %}">Watchlist</a>
+                        <li>
+                            <a href="{% url 'watchlist' user.id %}">Watchlist</a>
                         </li>
                     {% else %}
-                        <li class="nav-item col text-center">
-                            <a class="nav-link" href="{% url 'login' %}">Log In</a>
+                        <li>
+                            <a href="{% url 'login' %}">Log In</a>
                         </li>
-                        <li class="nav-item col text-center">
-                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                        <li>
+                            <a href="{% url 'register' %}">Register</a>
                         </li>
                     {% endif %}
                 </ul>
             </div>
             <hr>
         </header>
+        
         {% block body %}
         {% endblock %}
     </body>

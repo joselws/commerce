@@ -9,10 +9,14 @@ from .models import User, Category, Item, Bid, Comment
 
 
 def index(request):
-    """Main page, it displays all active items available"""
-    items = Item.objects.filter(active=True).order_by('id').reverse()
-    return render(request, "auctions/index.html", {
-        'items': items  #Show from the most recent to the oldest
+    """Main page, it displays all recent-active items available"""
+    items = Item.objects.filter(active=True).order_by('updated_at').reverse()
+    page_title = "Recent Items"
+    empty = "There are no active items in the auction!"
+    return render(request, "auctions/items.html", {
+        'items': items,  #Show from the most recent to the oldest
+        'page_title': page_title,
+        'empty': empty
     })
 
 
@@ -77,11 +81,11 @@ def create(request):
     #In case the user submitted the form:
     if request.method == 'POST':
         name = request.POST['name']
-        # We receive the user id from the form, get the user object from that
-        user = User.objects.get(pk=request.POST['user'])
+        # Get the user object from the current logged in user
+        user = User.objects.get(pk=request.user.id)
         #These fields below are optional and might have None as their value
         description = request.POST['description']
-        image = request.POST['image']
+        image = request.FILES['image']
         #Create a category instance for this field
         category = Category.objects.get(category=request.POST['category'])
         
@@ -135,7 +139,7 @@ def item(request, item_id):
         
     # If no bids exist, then the next bid is the starting price of the item
     else:
-        next_bid = float(item.price) + 1
+        next_bid = float(item.starting_price) + 1
         max_bid = None
 
     return render(request, 'auctions/item.html', {
@@ -147,12 +151,12 @@ def item(request, item_id):
         })
 
 
-def watch(request):
+def watch(request, item_id):
     """ Handles the watchlist addition and deletion from users in a item """
     if request.method == "POST":
         # Get the item and the user
-        item = Item.objects.get(pk=int(request.POST['item']))
-        user = User.objects.get(pk=int(request.POST['user']))
+        item = Item.objects.get(pk=item_id)
+        user = User.objects.get(pk=request.user.id)
 
         #Remove the user from this item watchlist if he/she is already in
         if user in item.watchlist.all():
@@ -165,12 +169,12 @@ def watch(request):
     return HttpResponseRedirect(reverse('item', args=(item.id,))) 
 
 
-def bid(request):
+def bid(request, item_id):
     """ Handles the bid POST logic for each item """
     # Get the item and the user from the form data to create the bid instance
     if request.method == "POST":
-        item = Item.objects.get(pk=int(request.POST['item']))
-        user = User.objects.get(pk=int(request.POST['user']))
+        item = Item.objects.get(pk=item_id)
+        user = User.objects.get(pk=request.user.id)
 
         # Catch any potential input error, if so, redirects the user to the item page
         try:
@@ -182,16 +186,16 @@ def bid(request):
         
         # If there are previously existing bids:
         # Check with the highest bids and the starting price
-        bids = Item.bids.all().order_by('bid').reverse()
+        bids = item.bids.all().order_by('bid').reverse()
         # And its starting price
         if bids:
-            if bid > bids[0].bid and bid > item.price:
+            if bid > bids[0].bid and bid > item.starting_price:
                 Bid.objects.create(bid=bid, item=item, user=user)
 
             return HttpResponseRedirect(reverse('item', args=(item.id,)))
         
         else:
-            if bid > item.price:
+            if bid > item.starting_price:
                 Bid.objects.create(bid=bid, item=item, user=user)
 
             return HttpResponseRedirect(reverse('item', args=(item.id,)))
@@ -199,11 +203,11 @@ def bid(request):
     return HttpResponseRedirect(reverse('index'))
                 
 
-def comment(request):
+def comment(request, item_id):
     """ Handles the comment POST logic for a item """
     if request.method == "POST":
-        item = Item.objects.get(pk=int(request.POST['item']))
-        user = User.objects.get(pk=int(request.POST['user']))
+        item = Item.objects.get(pk=item_id)
+        user = User.objects.get(pk=request.user.id)
         # Create comment if the user didn't submit an empty comment
         if request.POST['comment']:
             comment = request.POST['comment']
@@ -219,11 +223,15 @@ def comment(request):
 @login_required()
 def watchlist(request, user_id):
     """ Handles the 'visit watchlist' page """
+    page_title = "Watchlist"
+    empty = "There are no active items in your watchlist!"
     user = User.objects.get(pk=user_id)
     # Get all the items on the user watchlist
     items = user.watchlist.all().order_by('id').reverse()
-    return render(request, "auctions/watchlist.html", {
-        'items': items
+    return render(request, "auctions/items.html", {
+        'items': items,
+        'page_title': page_title,
+        'empty': empty
     })
 
 
@@ -239,9 +247,11 @@ def category_page(request, category_name):
     """ Displays all active items for a given category """
     # Get the category object from the name given in the URL
     category = Category.objects.get(category=category_name)
+    empty = "There are no active items for this category!"
     # Get all active items from the given category from the most recent
     items = Item.objects.filter(category=category, active=True).order_by('id').reverse()
-    return render(request, "auctions/category_page.html", {
+    return render(request, "auctions/items.html", {
         'items': items,
-        'category_name': category_name
+        'page_title': category_name,
+        'empty': empty
     })

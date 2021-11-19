@@ -1,0 +1,26 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block body %}
+
+    <h2>{{ page_title }}</h2>
+    <!-- Render all available requested items -->
+    {% for item in items %}
+        <h3><a href="{% url 'item' item.id %}">{{ item.name }}</a></h3>
+        <h4>Starting price: ${{ item.starting_price }}</h4>
+        <p><strong>{{ item.user.username }}</strong></p>
+        <p><strong>{{ item.category }}</strong></p>
+        {% if item.image %}
+            <img src="{{ item.image.url }}" alt="No Image" />
+        {% endif %}
+        <p>{{ item.description }}</p>
+        <p>{{ item.created_at }}</p>
+        <br />
+        <hr />
+    
+    {% empty %}
+        <h3>{{ empty }}</h3>
+    {% endfor %}
+
+{% endblock %}

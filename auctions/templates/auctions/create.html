@@ -1,34 +1,33 @@
 {% extends "auctions/layout.html" %}
 
-{% block title %}New{% endblock %}
+{% block title %}Create{% endblock %}
 
 {% block body %}
 
-    <h2>Create a new listing!</h2>
+    <h2>Create a new item!</h2>
     
     {% if message %}
         <strong>{{ message }}</strong>
     {% endif %}
 
-    <!-- Create a new listing form -->
-    <form action="{% url 'create' %}" method="post">
+    <!-- Create a new item form -->
+    <form action="{% url 'create' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <!-- Name of the listing (required)-->
+        <!-- Name of the item (required)-->
         <label for="name">Name: </label>
-        <input type="text" name="name" id="name" placeholder="Listing Name" required />
+        <input type="text" name="name" id="name" placeholder="Item Name" required />
         <br />
 
-        <!-- Description of the listing (optional)-->
+        <!-- Description of the item (optional)-->
         <label for="description">Item description:</label>
-        <textarea name="description" id="description" rows="10" cols="70" placeholder="Item description">
-        </textarea>
+        <textarea name="description" id="description" rows="10" cols="70" placeholder="Item description"></textarea>
         <br />
         
-        <!-- Starting price of the listing (required)-->
+        <!-- Starting price of the item (required)-->
         <label for="price">Starting price($): </label>
         <input type="text" name="price" id="price" required /><br />
 
-        <!-- Category of the listing(optional) -->
+        <!-- Category of the item(optional) -->
         <label for="category">Category: </label>
         <select name="category" size="5" id="category">
             {% for category in categories %}
@@ -37,16 +36,12 @@
         </select>
         <br />
 
-        <!-- Image url for the listing (optional) -->
+        <!-- Image for the item (optional) -->
         <label for="image">
-            <strong>Optional</strong> image URL: 
+            <strong>Optional</strong> Image: 
         </label>
-        <input type="url" id="image" name="image" placeholder="Image URL" />
+        <input type="file" id="image" name="image" placeholder="Image" />
         <br />
-
-        <!-- Readonly form hidden in client to send 'user' object data to backend -->
-        <input type="text" name="user" id="user" value="{{ user.id }}" 
-            style="display:none" readonly />
 
         <!-- Submit button -->
         <input type="submit" value="Submit" />

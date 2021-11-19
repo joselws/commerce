@@ -36,9 +36,12 @@ class Item(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	
 	#date the item is created
-	date = models.DateField(auto_now=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	#date the item was last updated
+	updated_at = models.DateTimeField(auto_now=True)
 	
-	#users can optionally add an image for their item, and they're sent to 'media/item_pics' folder
+	#users can optionally add an image for their item, and they're sent to 'static/auctions/images' folder
 	image = models.ImageField(blank=True, max_length=200)
 
 	#Field that stores the name of users that have any item as their watchlist
@@ -48,7 +51,16 @@ class Item(models.Model):
 	active = models.BooleanField(default=True)
 	
 	def __str__(self):
-		return f"Item {self.id}: {self.name} for ${self.price}. Posted by {self.user.username}"
+		return f"Item {self.id}: {self.name} for ${self.starting_price}. Posted by {self.user.username}"
+
+	# Currently not used
+	@property
+	def image_url(self):
+		try:
+			img = self.image.urls
+		except:
+			img = ''
+		return img
 
 
 class Bid(models.Model):
@@ -56,7 +68,7 @@ class Bid(models.Model):
 	bid = models.DecimalField(max_digits=10, decimal_places=2)
 	
 	#automatically added on creation
-	bid_date = models.DateField(auto_now=True)
+	bid_date = models.DateTimeField(auto_now=True)
 	
 	#the specific item on which the bid is made
 	item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="bids")
@@ -77,10 +89,10 @@ class Comment(models.Model):
 	comment = models.TextField()
 	
 	#date is created and set automatically when the comment is made
-	date = models.DateField(auto_now=True)
+	date = models.DateTimeField(auto_now=True)
 	
 	#the specific item the comment pertains to
-	item = models.ForeignKey(Item, on_delete=models.CASCADE)
+	item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="comments")
 	
 	def __str__(self):
 		return f"Comment by {self.user.username} on {self.item.name} at {self.date}"
