@@ -84,10 +84,18 @@ def create(request):
         user = User.objects.get(pk=request.user.id)
         #These fields below are optional and might have None as their value
         description = request.POST['description']
-        image = request.FILES['image']
-        #Create a category instance for this field
-        category = Category.objects.get(category=request.POST['category'])
-        
+        try:
+            image = request.FILES['image']
+        except KeyError:
+            image = ''
+        else:
+            print(image)
+
+        try:
+            category = Category.objects.get(category=request.POST['category'])
+        except KeyError:
+            category = Category.objects.get(category='Other')
+
         #The user might have input a non-number value
         try:
             starting_price = round(float(request.POST['price']), 2)
@@ -259,4 +267,51 @@ def category_page(request, category_name):
         'items': items,
         'page_title': category_name,
         'empty': empty
+    })
+
+
+def edit(request, item_id):
+    """ Display the create template with the item data in the form """
+    #Make available for all render methods all categories as context
+    categories = Category.objects.all()
+
+    item = Item.objects.get(pk=item_id)
+
+    #In case the user submitted the form:
+    if request.method == 'POST':
+        item.name = request.POST['name']
+        #These fields below are optional and might have None as their value
+        item.description = request.POST['description']
+
+        try:
+            item.image = request.FILES['image']
+        except KeyError:
+            item.image = ''
+        else:
+            print(item.image)
+
+
+        #Create a category instance for this field
+        try:
+            category = Category.objects.get(category=request.POST['category'])
+        except KeyError:
+            category = Category.objects.get(category='Other')
+        finally:
+            item.category = category
+        
+        #If all went well, create the item and redirect the user to the index page
+        try:
+            item.save()
+        except:
+            message = 'There was an error!'
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
+
+        message = "Item edited successfuly!"
+        return HttpResponseRedirect(reverse("item", args=(item.id,)))
+
+    #In case we came from a direct link (GET), just render the page normally
+    return render(request, "auctions/edit.html", {
+        'categories': categories,
+        'item': item,
+        'message': 'Edit your item.'
     })

@@ -1,37 +1,33 @@
 {% extends "auctions/layout.html" %}
 
-{% block title %}Create{% endblock %}
+{% block title %}Edit{% endblock %}
 
 {% block body %}
 
-    <h2>Create a new item!</h2>
+    <h2>Edit your item</h2>
     
     {% if message %}
         <strong>{{ message }}</strong>
     {% endif %}
 
     <!-- Create a new item form -->
-    <form action="{% url 'create' %}" method="post" enctype="multipart/form-data">
+    <form action="{% url 'edit' item.id %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <!-- Name of the item (required)-->
         <label for="name">Name: </label>
-        <input type="text" name="name" id="name" placeholder="Item Name" required />
+        <input type="text" name="name" id="name" placeholder="Item Name" value="{{ item.name }}" required />
         <br />
 
         <!-- Description of the item (optional)-->
         <label for="description">Item description:</label>
-        <textarea name="description" id="description" rows="10" cols="70" placeholder="Item description"></textarea>
+        <textarea name="description" id="description" rows="10" cols="70" placeholder="Item description">{{ item.description }}</textarea>
         <br />
         
-        <!-- Starting price of the item (required)-->
-        <label for="price">Starting price($): </label>
-        <input type="text" name="price" id="price" required /><br />
-
         <!-- Category of the item(optional) -->
         <label for="category">Category: </label>
         <select name="category" size="5" id="category" required>
             {% for category in categories %}
-                    <option value="{{ category }}">{{ category }}</option>
+                <option value="{{ category }}">{{ category }}</option>
             {% endfor %}
         </select>
         <br />

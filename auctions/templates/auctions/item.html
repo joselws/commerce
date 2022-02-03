@@ -26,6 +26,13 @@
         </form>
     {% endif %}
 
+    <!-- Show edit button if you're logged in, you're the creator of the item 
+        and it's still active -->
+
+    {% if user.is_authenticated and item.user.id is user.id and item.active %}
+        <a href="{% url 'edit' item.id %}">Edit</a>
+    {% endif %}
+
     <!-- Only show the 'close/open item' option to the user who made the item -->
     {% if user.is_authenticated and item.user.id is user.id %}
         <form action="{% url 'item' item.id %}" method="POST">
