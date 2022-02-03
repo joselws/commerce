@@ -48,7 +48,6 @@ def logout_view(request):
 def register(request):
     if request.method == "POST":
         username = request.POST["username"]
-        email = request.POST["email"]
 
         # Ensure password matches confirmation
         password = request.POST["password"]
@@ -60,7 +59,7 @@ def register(request):
 
         # Attempt to create new user
         try:
-            user = User.objects.create_user(username, email, password)
+            user = User.objects.create_user(username, password)
             user.save()
         except IntegrityError:
             return render(request, "auctions/register.html", {
@@ -190,7 +189,10 @@ def bid(request, item_id):
         # And its starting price
         if bids:
             if bid > bids[0].bid and bid > item.starting_price:
-                Bid.objects.create(bid=bid, item=item, user=user)
+                new_bid = Bid(bid=bid, item=item, user=user)
+                new_bid.save()
+                item.updated_at = new_bid.bid_date
+                item.save()
 
             return HttpResponseRedirect(reverse('item', args=(item.id,)))
         
@@ -211,7 +213,10 @@ def comment(request, item_id):
         # Create comment if the user didn't submit an empty comment
         if request.POST['comment']:
             comment = request.POST['comment']
-            Comment.objects.create(comment=comment, user=user, item=item)
+            new_comment = Comment(comment=comment, user=user, item=item)
+            new_comment.save()
+            item.updated_at = new_comment.date
+            item.save()
             return HttpResponseRedirect(reverse('item', args=(item.id,)))
         
         else:

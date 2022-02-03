@@ -7,7 +7,8 @@
     <h2>{{ item.name }}</h2>
     <p>Category: {{ item.category }}</p>
     <p>Posted by: <strong>{{ item.user.username }}</strong></p>
-    <p>{{ item.created_at }}</p>
+    <p>Created at: {{ item.created_at }}</p>
+    <p>Updated at: {{ item.updated_at }}</p>
 
     <!-- Only show the watchlist options for authenticated users
         whose items don't belong to them (you can't watchlist a
