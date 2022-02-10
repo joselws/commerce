@@ -21,7 +21,7 @@ class Category(models.Model):
 
 class Item(models.Model):
 	"""Models an item in the auction"""
-	name = models.CharField(max_length=64)
+	name = models.CharField(max_length=100)
 	
 	#TextField simulates a textarea field, can be empty
 	description = models.TextField(blank=True)
@@ -30,7 +30,7 @@ class Item(models.Model):
 	starting_price = models.DecimalField(max_digits=10, decimal_places=2)
 	
 	#Don't delete the item if the category it belongs to does
-	category = models.ForeignKey(Category, blank=True, on_delete=models.RESTRICT, default="Other")
+	category = models.ForeignKey(Category, blank=True, on_delete=models.RESTRICT)
 	
 	#if an user gets deleted, delete all items associated with him
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -53,14 +53,27 @@ class Item(models.Model):
 	def __str__(self):
 		return f"Item {self.id}: {self.name} for ${self.starting_price}. Posted by {self.user.username}"
 
-	# Currently not used
 	@property
 	def image_url(self):
+		""" Handles no input image """
 		try:
-			img = self.image.urls
+			img = self.image.url
 		except:
 			img = ''
 		return img
+
+	def valid_img(self):
+		""" Checks validity of image """
+		imgname = self.image.name
+		if imgname:
+			endchars = imgname[-5:]
+			if '.jpg' in endchars or '.jpeg' in endchars or '.png' in endchars:
+				return True
+			else:
+				return False
+				
+		else:
+			return True
 
 
 class Bid(models.Model):
