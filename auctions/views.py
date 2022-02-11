@@ -41,32 +41,43 @@ def login_view(request):
 
 
 def logout_view(request):
-    logout(request)
-    return HttpResponseRedirect(reverse("index"))
+    if request.user.is_authenticated:
+        logout(request)
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        return HttpResponseRedirect(reverse('login'))
 
 
 def register(request):
     if request.method == "POST":
-        username = request.POST["username"]
 
-        # Ensure password matches confirmation
-        password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
-        if password != confirmation:
-            return render(request, "auctions/register.html", {
-                "message": "Passwords must match."
-            })
+        if not request.user.is_authenticated:
+            username = request.POST["username"]
 
-        # Attempt to create new user
-        try:
-            user = User.objects.create_user(username, password)
-            user.save()
-        except IntegrityError:
-            return render(request, "auctions/register.html", {
-                "message": "Username already taken."
-            })
-        login(request, user)
-        return HttpResponseRedirect(reverse("index"))
+            # Ensure password matches confirmation
+            password = request.POST["password"]
+            confirmation = request.POST["confirmation"]
+            if password != confirmation:
+                return render(request, "auctions/register.html", {
+                    "message": "Passwords must match."
+                })
+
+            # Attempt to create new user
+            try:
+                user = User.objects.create_user(username, password)
+                user.save()
+            except IntegrityError:
+                return render(request, "auctions/register.html", {
+                    "message": "Username already taken."
+                })
+            login(request, user)
+            return HttpResponseRedirect(reverse("index"))
+
+        # user is authenticated
+        else:
+            return HttpResponseRedirect(reverse('index'))
+
+    # Get request
     else:
         return render(request, "auctions/register.html")
 
