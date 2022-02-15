@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-
+from .utils import image_is_valid, name_is_valid, price_is_valid
 from .models import User, Category, Item, Bid, Comment
 
 
@@ -82,54 +82,65 @@ def register(request):
         return render(request, "auctions/register.html")
 
 
-@login_required()
 def create(request):
     """Create a new item page"""
-    #Make available for all render methods all categories as context
-    categories = Category.objects.all()
+    if request.user.is_authenticated:
+        #Make available for all render methods all categories as context
+        categories = Category.objects.all()
 
-    #In case the user submitted the form:
-    if request.method == 'POST':
-        name = request.POST['name']
-        # Get the user object from the current logged in user
-        user = User.objects.get(pk=request.user.id)
-        #These fields below are optional and might have None as their value
-        description = request.POST['description']
-        try:
-            image = request.FILES['image']
-        except KeyError:
-            image = ''
-        else:
-            print(image)
+        #In case the user submitted the form:
+        if request.method == 'POST':
+            name = request.POST['name']
+            if not name_is_valid(name):
+                return render(request, "auctions/create.html", {
+                    'message': 'Name length must be larger than 1!',
+                    'categories': categories
+                })
 
-        try:
-            category = Category.objects.get(category=request.POST['category'])
-        except KeyError:
-            category = Category.objects.get(category='Other')
+            # Get the user object from the current logged in user
+            user = User.objects.get(pk=request.user.id)
+            #These fields below are optional and might have None as their value
+            description = request.POST['description']
 
-        #The user might have input a non-number value
-        try:
-            starting_price = round(float(request.POST['price']), 2)
+            try:
+                image = request.FILES['image']
+            except KeyError:
+                image = ''
+            finally:
+                if not image_is_valid(image):
+                    return render(request, "auctions/create.html", {
+                        'message': 'Not a valid image format!',
+                        'categories': categories
+                    })
 
-        #ValueError arises if we try to convert a non-valid string into a float
-        #i.e: words to float
-        except ValueError:
-            message = "You entered a non valid number at price, please try again!"
-            return render(request, "auctions/create.html", {
-                'message': message,
-                'categories': categories
-            })
+            try:
+                category = Category.objects.get(category=request.POST['category'])
+            except KeyError:
+                category = Category.objects.get(category='Other')
 
-        #If all went well, create the item and redirect the user to the index page
-        Item.objects.create(name=name, description=description, starting_price=starting_price, 
-            image=image, category=category, user=user)
-        return HttpResponseRedirect(reverse("index"))
+            #The user might have input a non-number value
+            starting_price = request.POST['price']
+            if not price_is_valid(starting_price):
+                return render(request, "auctions/create.html", {
+                    'message': 'Price must be a positive number!',
+                    'categories': categories
+                })
+            starting_price = round(float(starting_price), 2) 
+
+            #If all went well, create the item and redirect the user to the index page
+            item = Item.objects.create(name=name, description=description, starting_price=starting_price, 
+                image=image, category=category, user=user)
+            return HttpResponseRedirect(reverse("item", args=(item.id,)))
 
 
-    #In case we came from a direct link (GET), just render the page normally
-    return render(request, "auctions/create.html", {
-        'categories': categories
-    })
+        #In case we came from a direct link (GET), just render the page normally
+        return render(request, "auctions/create.html", {
+            'categories': categories
+        })
+
+    # user is not authenticated
+    else:
+        return HttpResponseRedirect(reverse('login'))
 
 
 def item(request, item_id):

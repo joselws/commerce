@@ -62,19 +62,6 @@ class Item(models.Model):
 			img = ''
 		return img
 
-	def valid_img(self):
-		""" Checks validity of image """
-		imgname = self.image.name
-		if imgname:
-			endchars = imgname[-5:]
-			if '.jpg' in endchars or '.jpeg' in endchars or '.png' in endchars:
-				return True
-			else:
-				return False
-				
-		else:
-			return True
-
 
 class Bid(models.Model):
 	"""The bid for every item in the auction"""
