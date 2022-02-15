@@ -635,4 +635,175 @@ class CreateTestCase(TestCase):
 ##### item view #####
 
 class ItemViewTestCase(TestCase):
+    
+    def setUp(self):
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+        testuser2 = User.objects.create_user(username='testuser2', password='testuser2')
+        other = Category.objects.create(category='Other')
+
+        item_bids_comments = Item.objects.create(name='test item bids', starting_price=20, category=other, user=testuser)
+        item_no_bids_comments = Item.objects.create(name='test item no bids', starting_price=20, category=other, user=testuser)
+
+        Bid.objects.create(user=testuser2, item=item_bids_comments, bid=30)
+        Bid.objects.create(user=testuser2, item=item_bids_comments, bid=40)
+        Bid.objects.create(user=testuser2, item=item_bids_comments, bid=50)
+
+        Comment.objects.create(user=testuser2, item=item_bids_comments, comment="Nice!")
+        Comment.objects.create(user=testuser2, item=item_bids_comments, comment="Great!")
+        Comment.objects.create(user=testuser2, item=item_bids_comments, comment="Awesome!")
+        
+
+    def test_item_exists_with_data_GET(self):
+        client = Client()
+
+        item_bids_comments = Item.objects.get(name='test item bids')
+        bids = Bid.objects.filter(item=item_bids_comments).order_by('bid_date').reverse()
+        comments = Comment.objects.filter(item=item_bids_comments).order_by('date').reverse()
+        max_bid = bids.first()
+        next_bid = max_bid.bid + 1
+        
+        response = client.get(reverse('item', args=(item_bids_comments.id,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(item_bids_comments.active)
+        self.assertEqual(response.context['item'], item_bids_comments)
+        self.assertQuerysetEqual(response.context['bids'], list(bids))
+        self.assertQuerysetEqual(response.context['comments'], list(comments))
+        self.assertEqual(response.context['max_bid'], max_bid)
+        self.assertEqual(response.context['next_bid'], next_bid)
+        self.assertEqual(response.request['PATH_INFO'], f'/item/{item_bids_comments.id}')
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_item_exists_with_no_data_GET(self):
+        client = Client()
+
+        item_no_bids_comments = Item.objects.get(name='test item no bids')
+        bids = Bid.objects.filter(item=item_no_bids_comments).order_by('bid_date').reverse()
+        comments = Comment.objects.filter(item=item_no_bids_comments).order_by('date').reverse()
+        max_bid = bids.first()
+        next_bid = item_no_bids_comments.starting_price + 1
+        
+        response = client.get(reverse('item', args=(item_no_bids_comments.id,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(item_no_bids_comments.active)
+        self.assertEqual(response.request['PATH_INFO'], f'/item/{item_no_bids_comments.id}')
+        self.assertEqual(response.context['item'], item_no_bids_comments)
+        self.assertQuerysetEqual(response.context['comments'], list(comments))
+        self.assertQuerysetEqual(response.context['bids'], list(bids))
+        self.assertEqual(response.context['max_bid'], max_bid)
+        self.assertEqual(response.context['next_bid'], next_bid)
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_item_doesnt_exists_GET(self):
+        client = Client()
+        response = client.get(reverse('item', args=(100,)), follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.request['PATH_INFO'], '/item/100')
+        try:
+            item = response.context['item']
+            bids = response.context['bids']
+            comments = response.context['comments']
+            max_bid = response.context['max_bid']
+            next_bid = response.context['next_bid']
+        except KeyError:
+            item = None
+            bids = None
+            comments = None
+            max_bid = None
+            next_bid = None
+        finally:
+            self.assertIsNone(item)
+            self.assertIsNone(bids)
+            self.assertIsNone(comments)
+            self.assertIsNone(max_bid)
+            self.assertIsNone(next_bid)
+
+    def test_authenticated_item_exists_with_data_GET(self):
+        client = Client()
+        client.login(username='testuser', password='testuser')
+
+        item_bids_comments = Item.objects.get(name='test item bids')
+        bids = Bid.objects.filter(item=item_bids_comments).order_by('bid_date').reverse()
+        comments = Comment.objects.filter(item=item_bids_comments).order_by('date').reverse()
+        max_bid = bids.first()
+        next_bid = max_bid.bid + 1
+        
+        response = client.get(reverse('item', args=(item_bids_comments.id,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(item_bids_comments.active)
+        self.assertEqual(response.context['item'], item_bids_comments)
+        self.assertQuerysetEqual(response.context['bids'], list(bids))
+        self.assertQuerysetEqual(response.context['comments'], list(comments))
+        self.assertEqual(response.context['max_bid'], max_bid)
+        self.assertEqual(response.context['next_bid'], next_bid)
+        self.assertEqual(response.request['PATH_INFO'], f'/item/{item_bids_comments.id}')
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_authorized_item_POST(self):
+        client = Client()
+        client.login(username='testuser', password='testuser')
+
+        item_bids_comments = Item.objects.get(name='test item bids')
+        bids = Bid.objects.filter(item=item_bids_comments).order_by('bid_date').reverse()
+        comments = Comment.objects.filter(item=item_bids_comments).order_by('date').reverse()
+        max_bid = bids.first()
+        next_bid = max_bid.bid + 1
+        
+        response = client.post(reverse('item', args=(item_bids_comments.id,)), follow=True)
+        item_bids_comments.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['item'].active)
+        self.assertEqual(response.context['item'], item_bids_comments)
+        self.assertQuerysetEqual(response.context['bids'], list(bids))
+        self.assertQuerysetEqual(response.context['comments'], list(comments))
+        self.assertEqual(response.context['max_bid'], max_bid)
+        self.assertEqual(response.context['next_bid'], next_bid)
+        self.assertEqual(response.request['PATH_INFO'], f'/item/{item_bids_comments.id}')
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_unauthorized_item_POST(self):
+        client = Client()
+        client.login(username='testuser2', password='testuser2')
+
+        item_bids_comments = Item.objects.get(name='test item bids')
+        bids = Bid.objects.filter(item=item_bids_comments).order_by('bid_date').reverse()
+        comments = Comment.objects.filter(item=item_bids_comments).order_by('date').reverse()
+        max_bid = bids.first()
+        next_bid = max_bid.bid + 1
+        
+        response = client.post(reverse('item', args=(item_bids_comments.id,)), follow=True)
+        item_bids_comments.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(item_bids_comments.active)
+        self.assertEqual(response.context['item'], item_bids_comments)
+        self.assertQuerysetEqual(response.context['bids'], list(bids))
+        self.assertQuerysetEqual(response.context['comments'], list(comments))
+        self.assertEqual(response.context['max_bid'], max_bid)
+        self.assertEqual(response.context['next_bid'], next_bid)
+        self.assertEqual(response.request['PATH_INFO'], f'/item/{item_bids_comments.id}')
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_unauthenticated_item_POST(self):
+        client = Client()
+        item_bids_comments = Item.objects.get(name='test item bids')
+        response = client.post(reverse('item', args=(item_bids_comments.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+        
+        item_bids_comments.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/login')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertTrue(item_bids_comments.active)
+        self.assertTemplateUsed(response, 'auctions/login.html')
+
+
+##### Watch view #####
+
+class WatchViewTestCase(TestCase):
     pass

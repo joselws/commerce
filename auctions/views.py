@@ -1,9 +1,10 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
+from django.db.models import Max
 from .utils import image_is_valid, name_is_valid, price_is_valid
 from .models import User, Category, Item, Bid, Comment
 
@@ -146,14 +147,18 @@ def create(request):
 def item(request, item_id):
     """ Individual page for each item """
     # Get the particular item we are rendering, along with its bids and comments
-    item = Item.objects.get(pk=item_id)
+    item = get_object_or_404(Item, pk=item_id)
 
     # If we are going to open or close the item
     if request.method == "POST":
-        # Switch its value between True and False
-        item.active = not item.active
-        item.save()
-        return HttpResponseRedirect(reverse('item', args=(item.id,)))
+        if request.user.is_authenticated:
+            # only item creator can activate/deactivate item
+            if request.user.id == item.user.id:
+                # Switch its value between True and False
+                item.active = not item.active
+                item.save()
+        else:
+            return HttpResponseRedirect(reverse('login'))
 
     # Get the bids in descending order by bid value
     # Django by default arranges it in ascending order, so we reverse it
