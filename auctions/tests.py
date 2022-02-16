@@ -806,4 +806,85 @@ class ItemViewTestCase(TestCase):
 ##### Watch view #####
 
 class WatchViewTestCase(TestCase):
+    
+    def setUp(self):
+        other = Category.objects.create(category='Other')
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+        testuser1 = User.objects.create_user(username='testuser1', password='testuser1')
+        item = Item.objects.create(name='item', starting_price=5, user=testuser, category=other)
+
+    
+    def test_nonauth_watch_GET(self):
+        client = Client()
+        item = Item.objects.get(name='item')
+        response = client.get(reverse('watch', args=(item.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertQuerysetEqual(item.watchlist.all(), [])
+        self.assertTemplateUsed(response, 'auctions/item.html')
+    
+    def test_auth_watch_GET(self):
+        client = Client()
+        client.login(username="testuser1", password="testuser1")
+        item = Item.objects.get(name='item')
+        response = client.get(reverse('watch', args=(item.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertQuerysetEqual(item.watchlist.all(), [])
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_nonauth_watch_POST(self):
+        client = Client()
+        item = Item.objects.get(name='item')
+        response = client.post(reverse('watch', args=(item.id,)), follow=True)
+        item.refresh_from_db()
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/login')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertQuerysetEqual(item.watchlist.all(), [])
+        self.assertTemplateUsed(response, 'auctions/login.html')
+
+    def test_authenticated_authorized_watch_POST(self):
+        client = Client()
+        testuser1 = User.objects.get(username='testuser1')
+        client.login(username="testuser1", password="testuser1")
+        item = Item.objects.get(name='item')
+        response = client.post(reverse('watch', args=(item.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+        item.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertQuerysetEqual(item.watchlist.all(), list(User.objects.filter(username='testuser1')))
+        self.assertQuerysetEqual(testuser1.watchlist.all(), list(Item.objects.filter(name='item')))
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_authenticated_nonauthorized_watch_POST(self):
+        client = Client()
+        testuser = User.objects.get(username='testuser')
+        client.login(username="testuser", password="testuser")
+        item = Item.objects.get(name='item')
+        response = client.post(reverse('watch', args=(item.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+        item.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertQuerysetEqual(item.watchlist.all(), [])
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+
+##### Bid view #####
+
+class BidViewTestCase(TestCase):
     pass

@@ -187,10 +187,18 @@ def item(request, item_id):
 
 def watch(request, item_id):
     """ Handles the watchlist addition and deletion from users in a item """
+    item = Item.objects.get(pk=item_id)
     if request.method == "POST":
-        # Get the item and the user
-        item = Item.objects.get(pk=item_id)
+
+        # Redirect nonauthenticated users to login
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect(reverse('login'))
+
         user = User.objects.get(pk=request.user.id)
+
+        # Redirect the creator to its item view
+        if user.id == item.user.id:
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
 
         #Remove the user from this item watchlist if he/she is already in
         if user in item.watchlist.all():
@@ -199,7 +207,7 @@ def watch(request, item_id):
         else:
             item.watchlist.add(user)
 
-    # Redirect the user back to the item page
+    # Redirect the user back to the item page both on GET and POST
     return HttpResponseRedirect(reverse('item', args=(item.id,))) 
 
 
