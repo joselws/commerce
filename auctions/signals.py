@@ -1,5 +1,5 @@
-from .models import Item
-from django.db.models.signals import pre_save, post_delete
+from .models import Item, Bid, Comment
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 import os
 
@@ -32,3 +32,25 @@ def delete_image_update(sender, instance, *args, **kwargs):
     # Don't do anything if there was no old image
     except:
         pass
+
+
+@receiver(post_save, sender=Bid)
+def update_updated_at_item_on_bid(sender, instance, *args, **kwargs):
+    """ Sets the updated_at attribute of item to the bid_date value of Bid """
+    # print('signal fired')
+    item = instance.item
+    item.updated_at = instance.bid_date
+    # print('setting updated_at from', item.updated_at, 'to', instance.bid_date)
+    item.save()
+    # print('updated_at set to', item.updated_at)
+
+
+@receiver(post_save, sender=Comment)
+def update_updated_at_item_on_comment(sender, instance, *args, **kwargs):
+    """ Sets the updated_at attribute of item to the date value of Bid """
+    #print('signal fired')
+    item = instance.item
+    item.updated_at = instance.date
+    #print('setting updated_at from', item.updated_at, 'to', instance.date)
+    item.save()
+    #print('updated_at set to', item.updated_at)

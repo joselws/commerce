@@ -120,13 +120,12 @@ def create(request):
                 category = Category.objects.get(category='Other')
 
             #The user might have input a non-number value
-            starting_price = request.POST['price']
-            if not price_is_valid(starting_price):
+            if not price_is_valid(request.POST['price']):
                 return render(request, "auctions/create.html", {
                     'message': 'Price must be a positive number!',
                     'categories': categories
                 })
-            starting_price = round(float(starting_price), 2) 
+            starting_price = round(float(request.POST['price']), 2) 
 
             #If all went well, create the item and redirect the user to the index page
             item = Item.objects.create(name=name, description=description, starting_price=starting_price, 
@@ -187,7 +186,7 @@ def item(request, item_id):
 
 def watch(request, item_id):
     """ Handles the watchlist addition and deletion from users in a item """
-    item = Item.objects.get(pk=item_id)
+    item = get_object_or_404(Item, pk=item_id)
     if request.method == "POST":
 
         # Redirect nonauthenticated users to login
@@ -213,39 +212,38 @@ def watch(request, item_id):
 
 def bid(request, item_id):
     """ Handles the bid POST logic for each item """
-    # Get the item and the user from the form data to create the bid instance
+    item = get_object_or_404(Item, pk=item_id)
+
     if request.method == "POST":
-        item = Item.objects.get(pk=item_id)
+
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect(reverse('login'))
+
         user = User.objects.get(pk=request.user.id)
 
-        # Catch any potential input error, if so, redirects the user to the item page
+        # Item creator cant bid and is redirected to the item
+        if user.id == item.user.id:
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
+
+        # bids in not acceptable format are rejected
+        if not price_is_valid(request.POST['bid']):
+            return HttpResponseRedirect(reverse('item', args=(item.id,)))
+        bid = round(float(request.POST['bid']), 2)
+
+        # Get the maximum bid (or starting price if there is none)
         try:
-            # Make sure to format the bid entered by the user to 2 decimals
-            bid = round(float(request.POST['bid']), 2)
+            max_bid = float(Bid.objects.filter(item=item).aggregate(Max('bid'))['bid__max'])
+        except TypeError:
+            max_bid = item.starting_price
 
-        except:
-            return HttpResponseRedirect(reverse('item', args=(item.id,)))
-        
-        # If there are previously existing bids:
-        # Check with the highest bids and the starting price
-        bids = item.bids.all().order_by('bid').reverse()
-        # And its starting price
-        if bids:
-            if bid > bids[0].bid and bid > item.starting_price:
-                new_bid = Bid(bid=bid, item=item, user=user)
-                new_bid.save()
-                item.updated_at = new_bid.bid_date
-                item.save()
-
-            return HttpResponseRedirect(reverse('item', args=(item.id,)))
-        
+        # Valid bids are accepted
+        if bid > max_bid:
+            Bid.objects.create(bid=bid, item=item, user=user)
         else:
-            if bid > item.starting_price:
-                Bid.objects.create(bid=bid, item=item, user=user)
-
             return HttpResponseRedirect(reverse('item', args=(item.id,)))
 
-    return HttpResponseRedirect(reverse('index'))
+    # GET requests or finish processing POST
+    return HttpResponseRedirect(reverse('item', args=(item.id,)))
                 
 
 def comment(request, item_id):
