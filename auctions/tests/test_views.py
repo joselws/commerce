@@ -1016,10 +1016,6 @@ class WatchlistTestCase(TestCase):
         item2 = Item.objects.create(name='item2', user=testuser, starting_price=5, category=other)
         item3 = Item.objects.create(name='item3', user=testuser, starting_price=5, category=other)
 
-        testuser2.watchlist.add(item1)
-        testuser2.watchlist.add(item2)
-        testuser2.watchlist.add(item3)
-
     
     def test_unauthenticated_GET(self):
         """ Unauthenticated users are redirected to /login """
@@ -1070,3 +1066,57 @@ class WatchlistTestCase(TestCase):
         self.assertEqual(response.context['empty'], 'There are no active items in your watchlist!')
         self.assertQuerysetEqual(response.context['items'], list(testuser.watchlist.all()))
         self.assertTemplateUsed(response, 'auctions/items.html')
+
+
+##### Category view #####
+
+class CategoryViewTestCase(TestCase):
+
+    def setUp(self):
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+
+        Category.objects.create(category='Other')
+        Category.objects.create(category='House')
+        Category.objects.create(category='Electronics')
+        Category.objects.create(category='Books')
+        Category.objects.create(category='Games')
+
+    def test_categories_GET(self):
+        """ Render template normally on GET """
+        client = Client()
+        categories = Category.objects.all()
+        response = client.get(reverse('category'), follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/category')
+        self.assertQuerysetEqual(response.context['categories'], list(categories), ordered=False)
+        self.assertTemplateUsed(response, 'auctions/categories.html')
+
+    def test_categories_POST(self):
+        """ Render template normally on POST as well """
+        client = Client()
+        categories = Category.objects.all()
+        response = client.post(reverse('category'), follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/category')
+        self.assertQuerysetEqual(response.context['categories'], list(categories), ordered=False)
+        self.assertTemplateUsed(response, 'auctions/categories.html')
+
+    def test_authenticated_categories_GET(self):
+        """ Render template normally if the user is logged in """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        categories = Category.objects.all()
+        response = client.get(reverse('category'), follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/category')
+        self.assertQuerysetEqual(response.context['categories'], list(categories), ordered=False)
+        self.assertTemplateUsed(response, 'auctions/categories.html')
+
+
+##### category page view #####
+
+class CategoryPageViewTestCase(TestCase):
+    pass
