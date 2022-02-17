@@ -248,37 +248,39 @@ def bid(request, item_id):
 
 def comment(request, item_id):
     """ Handles the comment POST logic for a item """
+    item = get_object_or_404(Item, pk=item_id)
+
     if request.method == "POST":
-        item = Item.objects.get(pk=item_id)
+        if not request.user.is_authenticated:
+            return HttpResponseRedirect(reverse('login'))
+
         user = User.objects.get(pk=request.user.id)
+
         # Create comment if the user didn't submit an empty comment
-        if request.POST['comment']:
+        if len(request.POST['comment']) > 1:
             comment = request.POST['comment']
-            new_comment = Comment(comment=comment, user=user, item=item)
-            new_comment.save()
-            item.updated_at = new_comment.date
-            item.save()
-            return HttpResponseRedirect(reverse('item', args=(item.id,)))
+            Comment.objects.create(comment=comment, user=user, item=item)
         
-        else:
-            return HttpResponseRedirect(reverse('item', args=(item.id,)))
-
-    return HttpResponseRedirect(reverse('index'))
+    return HttpResponseRedirect(reverse('item', args=(item.id,)))
 
 
-@login_required()
-def watchlist(request, user_id):
+def watchlist(request):
     """ Handles the 'visit watchlist' page """
-    page_title = "Watchlist"
-    empty = "There are no active items in your watchlist!"
-    user = User.objects.get(pk=user_id)
-    # Get all the items on the user watchlist
-    items = user.watchlist.all().order_by('id').reverse()
-    return render(request, "auctions/items.html", {
-        'items': items,
-        'page_title': page_title,
-        'empty': empty
-    })
+    if request.user.is_authenticated:
+        page_title = "Watchlist"
+        empty = "There are no active items in your watchlist!"
+        user = User.objects.get(pk=request.user.id)
+        # Get all the items on the user watchlist
+        items = user.watchlist.all().order_by('updated_at').reverse()
+        return render(request, "auctions/items.html", {
+            'items': items,
+            'page_title': page_title,
+            'empty': empty
+        })
+
+    # user is not authenticated
+    else:
+        return HttpResponseRedirect(reverse('login'))
 
 
 def category(request):

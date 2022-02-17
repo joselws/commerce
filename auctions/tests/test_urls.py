@@ -46,7 +46,7 @@ class TestUrls(SimpleTestCase):
         self.assertEqual(resolve(url).func, comment)
 
     def test_watchlist_url_resolves(self):
-        url = reverse('watchlist', args=(2,))
+        url = reverse('watchlist')
         self.assertEqual(resolve(url).func, watchlist)
 
     def test_category_url_resolves(self):

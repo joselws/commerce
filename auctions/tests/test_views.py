@@ -43,6 +43,8 @@ class IndexTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['items'].count(), 3)
         self.assertEqual(response.request.get('PATH_INFO'), '/')
+        self.assertEqual(response.context['page_title'], 'Recent Items')
+        self.assertEqual(response.context['empty'], 'There are no active items in the auction!')
         self.assertTemplateUsed(response, 'auctions/items.html')
 
 
@@ -912,4 +914,159 @@ class BidViewTestCase(TestCase):
 ##### comment view #####
 
 class CommentViewTestCase(TestCase):
-    pass
+    
+    def setUp(self):
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+        
+        other = Category.objects.create(category='Other')
+
+        item_comments = Item.objects.create(name='test item comments', starting_price=20, category=other, user=testuser)
+
+        Comment.objects.create(user=testuser, item=item_comments, comment="comment 1")
+        Comment.objects.create(user=testuser, item=item_comments, comment="comment 2")
+        Comment.objects.create(user=testuser, item=item_comments, comment="comment 3")
+
+    def test_item_doesnt_exists_bid_GET(self):
+        """ nonexistant items go 404 """
+        client = Client()
+        response = client.get(reverse('comment', args=(100,)), follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.request['PATH_INFO'], '/comment/100')
+
+    def test_item_doesnt_exists_bid_POST(self):
+        """ nonexistant items go 404 """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        data = {'comment': 'comment 4'}
+        response = client.post(reverse('comment', args=(100,)), data, follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.request['PATH_INFO'], '/comment/100')
+
+    def test_comment_GET(self):
+        """ GET requests on this view are redirected to its respective item """
+        client = Client()
+        item_comments = Item.objects.get(name='test item comments')
+        response = client.get(reverse('comment', args=(item_comments.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item_comments.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(Comment.objects.filter(item=item_comments).count(), 3)
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_nonauthenticated_comment_POST(self):
+        """ nonauthenticated users are redirected to login """
+        client = Client()
+        item_comments = Item.objects.get(name='test item comments')
+        data = {'comment': 'comment 4'}
+        response = client.post(reverse('comment', args=(item_comments.id,)), data, follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/login')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(Comment.objects.filter(item=item_comments).count(), 3)
+        self.assertTemplateUsed(response, 'auctions/login.html')
+
+    def test_authenticated_valid_comment_POST(self):
+        """ authenticated users can post valid comments """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        item_comments = Item.objects.get(name='test item comments')
+        data = {'comment': 'comment 4'}
+        response = client.post(reverse('comment', args=(item_comments.id,)), data, follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item_comments.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(Comment.objects.filter(item=item_comments).count(), 4)
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_authenticated_invalid_comment_POST(self):
+        """ invalid comments are rejected """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        item_comments = Item.objects.get(name='test item comments')
+        data = {'comment': 'c'}
+        response = client.post(reverse('comment', args=(item_comments.id,)), data, follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item_comments.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(Comment.objects.filter(item=item_comments).count(), 3)
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    
+##### watchlist view #####
+
+class WatchlistTestCase(TestCase):
+
+    def setUp(self):
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+        testuser2 = User.objects.create_user(username='testuser2', password='testuser2')
+
+        other = Category.objects.create(category='Other')
+
+        item1 = Item.objects.create(name='item1', user=testuser, starting_price=5, category=other)
+        item2 = Item.objects.create(name='item2', user=testuser, starting_price=5, category=other)
+        item3 = Item.objects.create(name='item3', user=testuser, starting_price=5, category=other)
+
+        testuser2.watchlist.add(item1)
+        testuser2.watchlist.add(item2)
+        testuser2.watchlist.add(item3)
+
+    
+    def test_unauthenticated_GET(self):
+        """ Unauthenticated users are redirected to /login """
+        client = Client()
+        response = client.get(reverse('watchlist'), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/login')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertTemplateUsed(response, 'auctions/login.html')
+
+    def test_unauthenticated_POST(self):
+        """ unautheniticated users are also redirected to /login on post """
+        client = Client()
+        response = client.post(reverse('watchlist'), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/login')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertTemplateUsed(response, 'auctions/login.html')
+
+    def test_authenticated_watchlist_items(self):
+        """ authenticated users with watchlist data have them rendered """
+        client = Client()
+        client.login(username='testuser2', password='testuser2')
+        testuser2 = User.objects.get(username='testuser2')
+        response = client.get(reverse('watchlist'), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/watchlist')
+        self.assertEqual(response.context['page_title'], 'Watchlist')
+        self.assertEqual(response.context['empty'], 'There are no active items in your watchlist!')
+        self.assertQuerysetEqual(response.context['items'], list(testuser2.watchlist.all().order_by('updated_at').reverse()))
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    def test_authenticated_watchlist_empty(self):
+        """ users with empty watchlist also renders the watchlist page """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        testuser = User.objects.get(username='testuser')
+        response = client.get(reverse('watchlist'), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/watchlist')
+        self.assertEqual(response.context['page_title'], 'Watchlist')
+        self.assertEqual(response.context['empty'], 'There are no active items in your watchlist!')
+        self.assertQuerysetEqual(response.context['items'], list(testuser.watchlist.all()))
+        self.assertTemplateUsed(response, 'auctions/items.html')
