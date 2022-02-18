@@ -1119,4 +1119,239 @@ class CategoryViewTestCase(TestCase):
 ##### category page view #####
 
 class CategoryPageViewTestCase(TestCase):
+
+    def setUp(self):
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+
+        other = Category.objects.create(category="Other")
+        house = Category.objects.create(category="House")
+        books = Category.objects.create(category="Books")
+
+        item_other_1 = Item.objects.create(name='item other 1', starting_price=30, category=other, user=testuser)
+        item_other_2 = Item.objects.create(name='item other 2', starting_price=30, category=other, user=testuser)
+        item_other_3 = Item.objects.create(name='item other 3', starting_price=30, category=other, user=testuser)
+        
+        item_house = Item.objects.create(name='item house', starting_price=30, category=house, user=testuser)
+
+    
+    def test_render_other_category_items_GET(self):
+        """ GET requests render the items normally """
+        category_name = 'Other'
+        other = Category.objects.get(category=category_name)
+        items = Item.objects.filter(category=other).order_by('updated_at').reverse()
+        client = Client()
+        response = client.get(reverse('category_page', args=(category_name,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], f'/category/{category_name}')
+        self.assertQuerysetEqual(response.context['items'], list(items))
+        self.assertEqual(response.context['items'].count(), 3)
+        self.assertEqual(response.context['page_title'], category_name)
+        self.assertEqual(response.context['empty'], 'There are no active items for this category!')
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    def test_render_other_category_items_POST(self):
+        """ POST requests render the items normally """
+        category_name = 'Other'
+        other = Category.objects.get(category=category_name)
+        items = Item.objects.filter(category=other).order_by('updated_at').reverse()
+        client = Client()
+        response = client.post(reverse('category_page', args=(category_name,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], f'/category/{category_name}')
+        self.assertQuerysetEqual(response.context['items'], list(items))
+        self.assertEqual(response.context['items'].count(), 3)
+        self.assertEqual(response.context['page_title'], category_name)
+        self.assertEqual(response.context['empty'], 'There are no active items for this category!')
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    def test_render_auth_user_category_items_GET(self):
+        """ Auth users are rendered the items normally """
+        category_name = 'Other'
+        other = Category.objects.get(category=category_name)
+        items = Item.objects.filter(category=other).order_by('updated_at').reverse()
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        response = client.get(reverse('category_page', args=(category_name,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], f'/category/{category_name}')
+        self.assertQuerysetEqual(response.context['items'], list(items))
+        self.assertEqual(response.context['items'].count(), 3)
+        self.assertEqual(response.context['page_title'], category_name)
+        self.assertEqual(response.context['empty'], 'There are no active items for this category!')
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    def test_category_name_doesnt_exist(self):
+        """ Category names that doesn't exist go 404 """
+        category_name = 'Pets'
+        client = Client()
+        response = client.get(reverse('category_page', args=(category_name,)), follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.request['PATH_INFO'], f'/category/{category_name}')
+
+    def test_category_house_single_item(self):
+        """ Page works normally on single items """
+        category_name = 'House'
+        house = Category.objects.get(category=category_name)
+        items = Item.objects.filter(category=house).order_by('updated_at').reverse()
+        client = Client()
+        response = client.get(reverse('category_page', args=(category_name,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], f'/category/{category_name}')
+        self.assertQuerysetEqual(response.context['items'], list(items))
+        self.assertEqual(response.context['items'].count(), 1)
+        self.assertEqual(response.context['page_title'], category_name)
+        self.assertEqual(response.context['empty'], 'There are no active items for this category!')
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    def test_category_books_no_item(self):
+        """ Page also works normally on empty category items """
+        category_name = 'Books'
+        books = Category.objects.get(category=category_name)
+        items = Item.objects.filter(category=books).order_by('updated_at').reverse()
+        client = Client()
+        response = client.get(reverse('category_page', args=(category_name,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], f'/category/{category_name}')
+        self.assertQuerysetEqual(response.context['items'], list(items))
+        self.assertEqual(response.context['items'].count(), 0)
+        self.assertEqual(response.context['page_title'], category_name)
+        self.assertEqual(response.context['empty'], 'There are no active items for this category!')
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    
+##### Edit view #####
+
+class EditViewTestCase(TestCase):
+    
+    def setUp(self):
+        other = Category.objects.create(category='Other')
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+        testuser2 = User.objects.create_user(username='testuser2', password='testuser2')
+
+        item = Item.objects.create(name='item', starting_price=20, user=testuser, category=other)
+
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
+
+    
+    def test_edit_item_doesnt_exist(self):
+        """ go 404 if the item doesn't exist """
+        client = Client()
+        response = client.get(reverse('edit', args=(100,)))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.request['PATH_INFO'], '/edit/100')
+
+    def test_nonauthenticated_users_redirected(self):
+        """ nonauthenticated users are redirected to /login """
+        client = Client()
+        item = Item.objects.get(name="item")
+        response = client.get(reverse('edit', args=(item.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/login')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertTemplateUsed(response, 'auctions/login.html')
+        try:
+            message = response.context['message']
+        except KeyError:
+            message = ''
+        finally:
+            self.assertEqual(message, '')
+
+    def test_non_authorized_users_redirected(self):
+        """ only the user creator can edit the item, others are redirected to the item page """
+        client = Client()
+        client.login(username='testuser2', password='testuser2')
+        item = Item.objects.get(name="item")
+        response = client.get(reverse('edit', args=(item.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertTemplateUsed(response, 'auctions/item.html')
+        try:
+            message = response.context['message']
+        except KeyError:
+            message = ''
+        finally:
+            self.assertEqual(message, '')
+
+    def test_authorized_user_GET(self):
+        """ user creator can see this page normally """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        item = Item.objects.get(name="item")
+        response = client.get(reverse('edit', args=(item.id,)), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], f'/edit/{item.id}')
+        self.assertEqual(response.context['item'], item)
+        self.assertEqual(response.context['message'], 'Edit your item.')
+        self.assertQuerysetEqual(response.context['categories'], list(Category.objects.all()))
+        self.assertTemplateUsed(response, 'auctions/edit.html')
+
+    def test_valid_authorized_edit_POST(self):
+        """ The item was updated successfully """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        item = Item.objects.get(name="item")
+        data = {'name': 'item edited', 'description': ''}
+        response = client.post(reverse('edit', args=(item.id,)), data, follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+        item.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(response.context['item'], item)
+        self.assertEqual(response.context['item'].name, 'item edited')
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_invalid_authorized_edit_name(self):
+        """ Invalid name edits are rejected """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        item = Item.objects.get(name="item")
+        data = {'name': '', 'description': ''}
+        response = client.post(reverse('edit', args=(item.id,)), data, follow=True)
+        item.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], f'/edit/{item.id}')
+        self.assertEqual(response.context['item'], item)
+        self.assertEqual(response.context['item'].name, 'item')
+        self.assertEqual(response.context['message'], 'Name length must be larger than 1!')
+        self.assertQuerysetEqual(response.context['categories'], list(Category.objects.all()))
+        self.assertTemplateUsed(response, 'auctions/edit.html')
+
+    def test_invalid_authorized_edit_image_format(self):
+        """ dont accept files that arent jpg or png """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        item = Item.objects.get(name="item")
+        image = File(open('auctions/gas_prices.csv', 'rb'))
+        data = {'image': image, 'description': '', 'name': item.name}
+        response = client.post(reverse('edit', args=(item.id,)), data, follow=True)
+        item.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], f'/edit/{item.id}')
+        self.assertEqual(response.context['item'], item)
+        self.assertEqual(response.context['item'].image_url, '')
+        self.assertEqual(response.context['message'], 'Not a valid image format!')
+        self.assertQuerysetEqual(response.context['categories'], list(Category.objects.all()))
+        self.assertTemplateUsed(response, 'auctions/edit.html')
+
+    
+class DeleteViewTestCase(TestCase):
     pass

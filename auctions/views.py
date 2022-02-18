@@ -294,10 +294,10 @@ def category(request):
 def category_page(request, category_name):
     """ Displays all active items for a given category """
     # Get the category object from the name given in the URL
-    category = Category.objects.get(category=category_name)
+    category = get_object_or_404(Category, category=category_name)
     empty = "There are no active items for this category!"
     # Get all active items from the given category from the most recent
-    items = Item.objects.filter(category=category, active=True).order_by('id').reverse()
+    items = Item.objects.filter(category=category, active=True).order_by('updated_at').reverse()
     return render(request, "auctions/items.html", {
         'items': items,
         'page_title': category_name,
@@ -308,45 +308,74 @@ def category_page(request, category_name):
 def edit(request, item_id):
     """ Display the create template with the item data in the form """
     #Make available for all render methods all categories as context
-    categories = Category.objects.all()
+    item = get_object_or_404(Item, pk=item_id)
+    
+    if request.user.is_authenticated:
+        categories = Category.objects.all()
 
-    item = Item.objects.get(pk=item_id)
+        # item creator (authorized user)
+        if request.user.id == item.user.id:
 
-    #In case the user submitted the form:
-    if request.method == 'POST':
-        item.name = request.POST['name']
-        #These fields below are optional and might have None as their value
-        item.description = request.POST['description']
+            #In case the user submitted the form:
+            if request.method == 'POST':
 
-        try:
-            item.image = request.FILES['image']
-        except KeyError:
-            item.image = ''
+                name = request.POST['name']
+                if name_is_valid(name):
+                    item.name = name
+                else:
+                    return render(request, 'auctions/edit.html', {
+                        'message': 'Name length must be larger than 1!',
+                        'categories': categories,
+                        'item': item
+                    })
+
+                #These fields below are optional and might have None as their value
+                item.description = request.POST['description']
+
+                try:
+                    image = request.FILES['image']
+                except KeyError:
+                    item.image = ''
+                else:
+                    if image_is_valid(image):
+                        item.image
+                    else:
+                        return render(request, 'auctions/edit.html', {
+                            'message': 'Not a valid image format!',
+                            'categories': categories,
+                            'item': item
+                        })
+                
+                try:
+                    category = Category.objects.get(category=request.POST['category'])
+                except KeyError:
+                    category = Category.objects.get(category='Other')
+                finally:
+                    item.category = category
+                
+                #If all went well, create the item and redirect the user to the index page
+                try:
+                    item.save()
+                except:
+                    return HttpResponseRedirect(reverse('item', args=(item.id,)))
+
+                return HttpResponseRedirect(reverse("item", args=(item.id,)))
+
+            #In case we came from a direct link (GET), just render the page normally
+            return render(request, "auctions/edit.html", {
+                'categories': categories,
+                'item': item,
+                'message': 'Edit your item.'
+            })
+            
+        # Unauthorized user
         else:
-            print(item.image)
-
-
-        #Create a category instance for this field
-        try:
-            category = Category.objects.get(category=request.POST['category'])
-        except KeyError:
-            category = Category.objects.get(category='Other')
-        finally:
-            item.category = category
-        
-        #If all went well, create the item and redirect the user to the index page
-        try:
-            item.save()
-        except:
-            message = 'There was an error!'
             return HttpResponseRedirect(reverse('item', args=(item.id,)))
+    
+    # user is not authenticated
+    else:
+        return HttpResponseRedirect(reverse('login'))
 
-        message = "Item edited successfuly!"
-        return HttpResponseRedirect(reverse("item", args=(item.id,)))
 
-    #In case we came from a direct link (GET), just render the page normally
-    return render(request, "auctions/edit.html", {
-        'categories': categories,
-        'item': item,
-        'message': 'Edit your item.'
-    })
+def delete(request, item_id):
+    pass

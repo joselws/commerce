@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 from django.urls import reverse, resolve
-from auctions.views import index, login_view, logout_view, register, create, item, watch, bid, comment, watchlist, category, category_page, edit
+from auctions.views import index, login_view, logout_view, register, create, delete, item, watch, bid, comment, watchlist, category, category_page, edit
 
 
 class TestUrls(SimpleTestCase):
@@ -28,6 +28,10 @@ class TestUrls(SimpleTestCase):
     def test_edit_url_resolves(self):
         url = reverse('edit', args=(5,))
         self.assertEqual(resolve(url).func, edit)
+
+    def test_delete_url_resolves(self):
+        url = reverse('delete', args=(5,))
+        self.assertEqual(resolve(url).func, delete)
 
     def test_item_url_resolves(self):
         url = reverse('item', args=(4,))

@@ -15,19 +15,20 @@ def delete_image_post_delete(sender, instance, *args, **kwargs):
 
 @receiver(pre_save, sender=Item)
 def delete_image_update(sender, instance, *args, **kwargs):
-    """ Deletes old image from images/ folder if a new image was uploaded on item edit """
+    """ Deletes old image from images/ folder if a new image was uploaded on item edit, otherwise keep old image """
     try:
-        old_image = instance.__class__.objects.get(id=instance.id).image.path
+        old_object = instance.__class__.objects.get(id=instance.id)
+        old_image = instance.__class__.objects.get(id=instance.id).image
         try:
             new_image = instance.image.path
 
         # User didn't upload new image
         except:
-            pass
+            instance.image = old_image
         
         if old_image != new_image and new_image is not None:
-            if os.path.exists(old_image):
-                os.remove(old_image)
+            if os.path.exists(old_image.path):
+                os.remove(old_image.path)
 
     # Don't do anything if there was no old image
     except:
