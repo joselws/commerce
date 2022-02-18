@@ -378,4 +378,25 @@ def edit(request, item_id):
 
 
 def delete(request, item_id):
-    pass
+    """ View that handles the deletion of items """
+    item = get_object_or_404(Item, pk=item_id)
+
+    if request.method == 'POST':
+
+        if request.user.is_authenticated:
+
+            if request.user.id == item.user.id:
+                item.delete()
+                return HttpResponseRedirect(reverse('index'))
+
+            # The signed in user is not authorized
+            else:
+                return HttpResponseRedirect(reverse('item', args=(item.id,)))
+
+        # User is not authenticated
+        else:
+            return HttpResponseRedirect(reverse('login'))
+
+    # request method == GET
+    else:
+        return HttpResponseRedirect(reverse('item', args=(item.id,)))

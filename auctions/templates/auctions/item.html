@@ -26,7 +26,15 @@
         </form>
     {% endif %}
 
-    <!-- Show edit button if you're logged in, you're the creator of the item 
+    <!-- Show delete button to the item creator -->
+    {% if user.is_authenticated and item.user.id is user.id %}
+        <form action="{% url 'delete' item.id %}" method="POST">
+            {% csrf_token %}
+            <button type="submit">Delete</button>
+        </form>
+    {% endif %}
+
+    <!-- Show edit link if you're logged in, you're the creator of the item 
         and it's still active -->
 
     {% if user.is_authenticated and item.user.id is user.id and item.active %}

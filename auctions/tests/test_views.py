@@ -1354,4 +1354,75 @@ class EditViewTestCase(TestCase):
 
     
 class DeleteViewTestCase(TestCase):
-    pass
+
+    def setUp(self):
+        other = Category.objects.create(category='Other')
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+        testuser2 = User.objects.create_user(username='testuser2', password='testuser2')
+        
+
+        item1 = Item.objects.create(name='item1', user=testuser, category=other, starting_price=5)
+        item2 = Item.objects.create(name='item2', user=testuser, category=other, starting_price=5)
+
+    
+    def test_delete_item_doesnt_exist(self):
+        """ go 404 if the item doesn't exist """
+        client = Client()
+        response = client.get(reverse('delete', args=(100,)), follow=True)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.request['PATH_INFO'], '/delete/100')
+
+    def test_delete_item_GET(self):
+        """ Users are redirected to /item on GET """
+        client = Client()
+        item1 = Item.objects.get(name='item1')
+        response = client.get(reverse('delete', args=(item1.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item1.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(Item.objects.all().count(), 2)
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_delete_item_unauthorized_POST(self):
+        """ Authenticated users that are not the creator are redirected to /item """
+        client = Client()
+        client.login(username='testuser2', password='testuser2')
+        item1 = Item.objects.get(name='item1')
+        response = client.post(reverse('delete', args=(item1.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, f'/item/{item1.id}')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(Item.objects.all().count(), 2)
+        self.assertTemplateUsed(response, 'auctions/item.html')
+
+    def test_delete_item_unauthenticated_POST(self):
+        """ Non authenticated users are redirected to /login on POST """
+        client = Client()
+        item1 = Item.objects.get(name='item1')
+        response = client.post(reverse('delete', args=(item1.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/login')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(Item.objects.all().count(), 2)
+        self.assertTemplateUsed(response, 'auctions/login.html')
+
+    def test_delete_item_authorized_POST(self):
+        """ Authenticated users that are not the creator are redirected to /item """
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        item1 = Item.objects.get(name='item1')
+        response = client.post(reverse('delete', args=(item1.id,)), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertEqual(Item.objects.all().count(), 1)
+        self.assertTemplateUsed(response, 'auctions/items.html')
