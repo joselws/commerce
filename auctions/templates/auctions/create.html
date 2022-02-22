@@ -4,47 +4,49 @@
 
 {% block body %}
 
-    <h2>Create a new item!</h2>
-    
-    {% if message %}
-        <strong>{{ message }}</strong>
-    {% endif %}
-
-    <!-- Create a new item form -->
-    <form action="{% url 'create' %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <!-- Name of the item (required)-->
-        <label for="name">Name: </label>
-        <input type="text" name="name" id="name" placeholder="Item Name" required />
-        <br />
-
-        <!-- Description of the item (optional)-->
-        <label for="description">Item description:</label>
-        <textarea name="description" id="description" rows="10" cols="70" placeholder="Item description"></textarea>
-        <br />
+    <div class="create-wrapper">
+        <h2 class="heading">Create a new item!</h2>
         
-        <!-- Starting price of the item (required)-->
-        <label for="price">Starting price($): </label>
-        <input type="text" name="price" id="price" required /><br />
-
-        <!-- Category of the item(optional) -->
-        <label for="category">Category: </label>
-        <select name="category" size="5" id="category" required>
-            {% for category in categories %}
-                    <option value="{{ category }}">{{ category }}</option>
-            {% endfor %}
-        </select>
-        <br />
-
-        <!-- Image for the item (optional) -->
-        <label for="image">
-            <strong>Optional</strong> Image: 
-        </label>
-        <input type="file" id="image" name="image" placeholder="Image" />
-        <br />
-
-        <!-- Submit button -->
-        <input type="submit" value="Submit" />
-    </form>
+        {% if message %}
+            <strong class="create-error-message">{{ message }}</strong>
+        {% endif %}
+    
+        <!-- Create a new item form -->
+        <form class="create-form" action="{% url 'create' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Name of the item (required)-->
+            <label class="create-name-label" for="name">Name: </label>
+            <input class="create-name-input" type="text" name="name" id="name" placeholder="Item Name" required />
+            <br />
+    
+            <!-- Description of the item (optional)-->
+            <label class="create-description-label" for="description">Item description:</label>
+            <textarea class="create-description-textarea" name="description" id="description" rows="10" cols="70" placeholder="Item description"></textarea>
+            <br />
+            
+            <!-- Starting price of the item (required)-->
+            <label class="create-price-label" for="price">Starting price($): </label>
+            <input class="create-price-input" type="text" name="price" id="price" required /><br />
+    
+            <!-- Category of the item -->
+            <label class="create-category-label" for="category">Category: </label>
+            <select class="create-category-select" name="category" size="5" id="category" required>
+                {% for category in categories %}
+                        <option class="create-category-option" value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+            <br />
+    
+            <!-- Image for the item (optional) -->
+            <label class="create-image-label" for="image">
+                <strong>Optional</strong> Image: 
+            </label>
+            <input class="create-image-input" type="file" id="image" name="image" placeholder="Image" />
+            <br />
+    
+            <!-- Submit button -->
+            <input class="create-submit-btn" type="submit" value="Submit" />
+        </form>
+    </div>
 
 {% endblock %}

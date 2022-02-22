@@ -1,5 +1,5 @@
 from .models import Item, Bid, Comment
-from django.db.models.signals import pre_save, post_save, post_delete
+from django.db.models.signals import pre_save, post_save, post_delete, m2m_changed
 from django.dispatch import receiver
 import os
 
@@ -55,3 +55,33 @@ def update_updated_at_item_on_comment(sender, instance, *args, **kwargs):
     #print('setting updated_at from', item.updated_at, 'to', instance.date)
     item.save()
     #print('updated_at set to', item.updated_at)
+
+
+@receiver(post_save, sender=Bid)
+def increase_popularity_count_on_bid(sender, instance, *args, **kwargs):
+    """ Call the increase_popularity item method everytime a bid is made """
+    item = instance.item
+    item.increase_popularity()
+    item.save()
+
+
+@receiver(post_save, sender=Comment)
+def increase_popularity_count_on_comment(sender, instance, *args, **kwargs):
+    """ Call the increase_popularity item method everytime a comment is made """
+    item = instance.item
+    item.increase_popularity()
+    item.save()
+
+
+@receiver(m2m_changed, sender=Item.watchlist.through)
+def change_popularity_on_watchlist_add(sender, instance, action, *args, **kwargs):
+    """ Call the increase_popularity or decrease_popularity item method 
+    everytime the item is added in or removed from someone's watchlist """
+    
+    if action == 'post_add':
+        item.increase_popularity()
+
+    elif action == 'post_remove':
+        item.decrease_popularity()
+        
+    item.save()

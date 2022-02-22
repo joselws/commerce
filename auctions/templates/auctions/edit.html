@@ -3,44 +3,45 @@
 {% block title %}Edit{% endblock %}
 
 {% block body %}
-
-    <h2>Edit your item</h2>
-    
-    {% if message %}
-        <strong>{{ message }}</strong>
-    {% endif %}
-
-    <!-- Create a new item form -->
-    <form action="{% url 'edit' item.id %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <!-- Name of the item (required)-->
-        <label for="name">Name: </label>
-        <input type="text" name="name" id="name" placeholder="Item Name" value="{{ item.name }}" required />
-        <br />
-
-        <!-- Description of the item (optional)-->
-        <label for="description">Item description:</label>
-        <textarea name="description" id="description" rows="10" cols="70" placeholder="Item description">{{ item.description }}</textarea>
-        <br />
+    <div class="edit-wrapper">
+        <h2 class="heading">Edit your item</h2>
         
-        <!-- Category of the item(optional) -->
-        <label for="category">Category: </label>
-        <select name="category" size="5" id="category" required>
-            {% for category in categories %}
-                <option value="{{ category }}">{{ category }}</option>
-            {% endfor %}
-        </select>
-        <br />
-
-        <!-- Image for the item (optional) -->
-        <label for="image">
-            <strong>Optional</strong> Image: 
-        </label>
-        <input type="file" id="image" name="image" placeholder="Image" />
-        <br />
-
-        <!-- Submit button -->
-        <input type="submit" value="Submit" />
-    </form>
+        {% if message %}
+            <strong class="edit-error-message">{{ message }}</strong>
+        {% endif %}
+    
+        <!-- Create a new item form -->
+        <form class="edit-form" action="{% url 'edit' item.id %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Name of the item (required)-->
+            <label class="edit-name-label" for="name">Name: </label>
+            <input class="edit-name-input" type="text" name="name" id="name" placeholder="Item Name" value="{{ item.name }}" required />
+            <br />
+    
+            <!-- Description of the item (optional)-->
+            <label class="edit-description-label" for="description">Item description:</label>
+            <textarea class="edit-description-textarea" name="description" id="description" rows="10" cols="70" placeholder="Item description">{{ item.description }}</textarea>
+            <br />
+            
+            <!-- Category of the item(optional) -->
+            <label class="edit-category-label" for="category">Category: </label>
+            <select class="edit-category-select" name="category" size="5" id="category" required>
+                {% for category in categories %}
+                    <option class="edit-category-option" value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+            <br />
+    
+            <!-- Image for the item (optional) -->
+            <label class="edit-image-label" for="image">
+                <strong>Optional</strong> Image: 
+            </label>
+            <input class="edit-image-input" type="file" id="image" name="image" placeholder="Image" />
+            <br />
+    
+            <!-- Submit button -->
+            <input class="edit-submit-btn" type="submit" value="Submit" />
+        </form>
+    </div>
 
 {% endblock %}

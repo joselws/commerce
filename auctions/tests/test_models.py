@@ -42,3 +42,27 @@ class ItemTestCase(TestCase):
     def test_no_img_url(self):
         item_no_image = Item.objects.get(name="no_img")
         self.assertEqual(item_no_image.image_url, '')
+
+    def test_increase_popularity(self):
+        """ Test the increase popularity method """
+        item = Item.objects.get(name='no_img')
+
+        item.increase_popularity()
+        item.save()
+        item.refresh_from_db()
+
+        self.assertEqual(item.popularity, 1)
+
+    def test_decrease_popularity(self):
+        """ Test the decrease popularity method """
+        item = Item.objects.get(name='no_img')
+
+        item.popularity = 5
+        item.save()
+        item.refresh_from_db()
+
+        item.decrease_popularity()
+        item.save()
+        item.refresh_from_db()
+
+        self.assertEqual(item.popularity, 4)

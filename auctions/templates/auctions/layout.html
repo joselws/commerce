@@ -8,41 +8,41 @@
         <link type="text/css" rel="stylesheet" href="{% static 'styles.css' %}" />
     </head>
     <body>
-        <header>
-            <h1>Auctions</h1>
+        <header class='header-wrapper'>
+            <h1 class='main-heading'>Auctions</h1>
 
-            <div>
+            <div class='greeting-wrapper'>
                 {% if user.is_authenticated %}
-                    <p>Welcome <strong>{{ user.username }}!</strong></p>
+                    <p class='greeting-user'>Welcome <strong>{{ user.username }}!</strong></p>
                 {% else %}
-                    <p>Not signed in.</p>
+                    <p class='greeting-user'>Not signed in.</p>
                 {% endif %}
             </div>
             
-            <div>
-                <ul>
-                    <li>
-                        <a href="{% url 'index' %}">Active Items</a>
+            <div class="nav-wrapper">
+                <ul class="nav">
+                    <li class='nav-item'>
+                        <a href="{% url 'index' %}" class="nav-link">Active Items</a>
                     </li>
-                    <li>
-                        <a href="{% url 'category' %}">Categories</a>
+                    <li class='nav-item'>
+                        <a href="{% url 'category' %}" class="nav-link">Categories</a>
                     </li>
                     {% if user.is_authenticated %}
-                        <li>
-                            <a href="{% url 'logout' %}">Log Out</a>
+                        <li class='nav-item'>
+                            <a href="{% url 'logout' %}" class="nav-link">Log Out</a>
                         </li>
-                        <li>
-                            <a href="{% url 'create' %}">New Item</a>
+                        <li class='nav-item'>
+                            <a href="{% url 'create' %}" class="nav-link">New Item</a>
                         </li>
-                        <li>
-                            <a href="{% url 'watchlist' %}">Watchlist</a>
+                        <li class='nav-item'>
+                            <a href="{% url 'watchlist' %}" class="nav-link">Watchlist</a>
                         </li>
                     {% else %}
-                        <li>
-                            <a href="{% url 'login' %}">Log In</a>
+                        <li class='nav-item'>
+                            <a href="{% url 'login' %}" class="nav-link">Log In</a>
                         </li>
-                        <li>
-                            <a href="{% url 'register' %}">Register</a>
+                        <li class='nav-item'>
+                            <a href="{% url 'register' %}" class="nav-link">Register</a>
                         </li>
                     {% endif %}
                 </ul>
