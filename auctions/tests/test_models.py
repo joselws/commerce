@@ -48,7 +48,6 @@ class ItemTestCase(TestCase):
         item = Item.objects.get(name='no_img')
 
         item.increase_popularity()
-        item.save()
         item.refresh_from_db()
 
         self.assertEqual(item.popularity, 1)
@@ -62,7 +61,6 @@ class ItemTestCase(TestCase):
         item.refresh_from_db()
 
         item.decrease_popularity()
-        item.save()
         item.refresh_from_db()
 
         self.assertEqual(item.popularity, 4)

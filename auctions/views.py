@@ -400,3 +400,16 @@ def delete(request, item_id):
     # request method == GET
     else:
         return HttpResponseRedirect(reverse('item', args=(item.id,)))
+
+
+def populars(request):
+    """ Displays active items ordered by popularity in descending order """
+    items = Item.objects.filter(active=True).order_by('popularity').reverse()
+    page_title = 'Most popular'
+    empty = 'There are no active items in the auction!'
+
+    return render(request, 'auctions/items.html', {
+        'items': items,
+        'page_title': page_title,
+        'empty': empty
+    })

@@ -1426,3 +1426,51 @@ class DeleteViewTestCase(TestCase):
         self.assertEqual(redirect_status_code, 302)
         self.assertEqual(Item.objects.all().count(), 1)
         self.assertTemplateUsed(response, 'auctions/items.html')
+
+
+##### Most popular view #####
+
+class PopularsTestCase(TestCase):
+
+    def setUp(self):
+        other = Category.objects.create(category='Other')
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+        item1 = Item.objects.create(name='item1', starting_price=23, user=testuser, category=other)
+        item2 = Item.objects.create(name='item2', starting_price=23, user=testuser, category=other)
+
+        # Item 1 is more popular than item2
+        item1.increase_popularity()
+        item1.increase_popularity()
+
+        item2.increase_popularity()
+
+    
+    def test_most_popular_GET(self):
+        """ Most popular items are rendered first """
+        page_title = 'Most popular'
+        empty = 'There are no active items in the auction!'
+        client = Client()
+        response = client.get(reverse('populars'), follow=True)
+        items = Item.objects.all().order_by('popularity').reverse()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/populars')
+        self.assertEqual(response.context['page_title'], page_title)
+        self.assertEqual(response.context['empty'], empty)
+        self.assertQuerysetEqual(response.context['items'], list(items))
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    def test_most_popular_POST(self):
+        """ POST requests don't affect the logic """
+        page_title = 'Most popular'
+        empty = 'There are no active items in the auction!'
+        client = Client()
+        response = client.post(reverse('populars'), follow=True)
+        items = Item.objects.all().order_by('popularity').reverse()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/populars')
+        self.assertEqual(response.context['page_title'], page_title)
+        self.assertEqual(response.context['empty'], empty)
+        self.assertQuerysetEqual(response.context['items'], list(items))
+        self.assertTemplateUsed(response, 'auctions/items.html')

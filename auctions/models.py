@@ -69,10 +69,12 @@ class Item(models.Model):
 	def increase_popularity(self):
 		""" Increases popularity count by one """
 		self.popularity += 1
+		self.save()
 
 	def decrease_popularity(self):
 		""" Decreases popularity count by one """
 		self.popularity -= 1
+		self.save()
 
 
 class Bid(models.Model):
