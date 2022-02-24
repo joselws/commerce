@@ -413,3 +413,22 @@ def populars(request):
         'page_title': page_title,
         'empty': empty
     })
+
+
+def my_items(request):
+    """ Display all user's items """
+    if request.user.is_authenticated:
+        user = User.objects.get(id=request.user.id)
+        items = Item.objects.filter(active=True, user=user).order_by('created_at').reverse()
+        page_title = 'My items'
+        empty = 'You have no items!'
+
+        return render(request, 'auctions/items.html', {
+            'items': items,
+            'page_title': page_title,
+            'empty': empty
+        })
+
+    # user is not authenticated
+    else:
+        return HttpResponseRedirect(reverse('login'))

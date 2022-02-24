@@ -1474,3 +1474,93 @@ class PopularsTestCase(TestCase):
         self.assertEqual(response.context['empty'], empty)
         self.assertQuerysetEqual(response.context['items'], list(items))
         self.assertTemplateUsed(response, 'auctions/items.html')
+
+
+##### My items view #####
+
+class MyItemsTestCase(TestCase):
+
+    def setUp(self):
+        other = Category.objects.create(category='Other')
+        testuser = User.objects.create_user(username='testuser', password='testuser')
+        testuser2 = User.objects.create_user(username='testuser2', password='testuser2')
+        item1 = Item.objects.create(name='item1', starting_price=23, user=testuser, category=other)
+        item2 = Item.objects.create(name='item2', starting_price=23, user=testuser, category=other)
+
+    
+    def test_auth_my_items_GET(self):
+        """ GET requests on auth users have their items rendered correctly """
+        testuser = User.objects.get(username='testuser')
+        items = Item.objects.filter(user=testuser)
+        page_title = 'My items'
+        empty = 'You have no items!'
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        response = client.get(reverse('my_items'), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/my_items')
+        self.assertEqual(response.context['page_title'], page_title)
+        self.assertEqual(response.context['empty'], empty)
+        self.assertEqual(response.context['items'].count(), 2)
+        self.assertQuerysetEqual(response.context['items'], list(items), ordered=False)
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    def test_auth_my_items_POST(self):
+        """ POST requests don't affect the logic of the view """
+        testuser = User.objects.get(username='testuser')
+        items = Item.objects.filter(user=testuser)
+        page_title = 'My items'
+        empty = 'You have no items!'
+        client = Client()
+        client.login(username='testuser', password='testuser')
+        response = client.post(reverse('my_items'), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/my_items')
+        self.assertEqual(response.context['page_title'], page_title)
+        self.assertEqual(response.context['empty'], empty)
+        self.assertEqual(response.context['items'].count(), 2)
+        self.assertQuerysetEqual(response.context['items'], list(items), ordered=False)
+        self.assertTemplateUsed(response, 'auctions/items.html')
+
+    def test_unauthenticated_my_items_GET(self):
+        """ Non authenticated users are redirected to /login """
+        client = Client()
+        response = client.get(reverse('my_items'), follow=True)
+        redirect_url, redirect_status_code = response.redirect_chain[0]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(redirect_url, '/login')
+        self.assertEqual(redirect_status_code, 302)
+        self.assertTemplateUsed(response, 'auctions/login.html')
+        try:
+            page_title = response.context['page_title']
+            empty = response.context['empty']
+            items = response.context['items']
+        except:
+            page_title = ''
+            empty = ''
+            items = []
+        finally:
+            self.assertEqual(page_title, '')
+            self.assertEqual(empty, '')
+            self.assertEqual(len(items), 0)
+
+    def test_auth_my_items_empty_GET(self):
+        """ Users with empty items have their page rendered correctly """
+        testuser2 = User.objects.get(username='testuser2')
+        items = Item.objects.filter(user=testuser2)
+        page_title = 'My items'
+        empty = 'You have no items!'
+        client = Client()
+        client.login(username='testuser2', password='testuser2')
+        response = client.get(reverse('my_items'), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/my_items')
+        self.assertEqual(response.context['page_title'], page_title)
+        self.assertEqual(response.context['empty'], empty)
+        self.assertEqual(response.context['items'].count(), 0)
+        self.assertQuerysetEqual(response.context['items'], list(items), ordered=False)
+        self.assertTemplateUsed(response, 'auctions/items.html')
