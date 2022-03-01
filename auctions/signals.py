@@ -1,7 +1,15 @@
 from .models import Item, Bid, Comment
 from django.db.models.signals import pre_save, post_save, post_delete, m2m_changed
 from django.dispatch import receiver
+from django.core.files import File
 import os
+
+
+@receiver(post_save, sender=Item)
+def add_default_image(sender, instance, *args, **kwargs):
+    """ Set the image property of Item to the default if no image was uploaded on creation """
+    if not instance.image_url:
+        instance.image.save('empty.jpg', File(open('auctions/empty.jpg', 'rb')))
 
 
 @receiver(post_delete, sender=Item)

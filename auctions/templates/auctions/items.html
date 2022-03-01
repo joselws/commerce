@@ -2,23 +2,30 @@
 
 {% block title %}{{ page_title }}{% endblock %}
 
+{% block header %}{{ page_title }}{% endblock %}
+
 {% block body %}
-    <div class="items-wrapper">
-        <h2 class="heading">{{ page_title }}</h2>
+
+    <div class="all-items-wrapper">
         <!-- Render all available requested items -->
         {% for item in items %}
-            <h3 class="sub-heading"><a href="{% url 'item' item.id %}">{{ item.name }}</a></h3>
-            <h4 class="items-price">Starting price: ${{ item.starting_price }}</h4>
-            <p class="items-user"><strong>{{ item.user.username }}</strong></p>
-            <p class="items-category"><strong>{{ item.category }}</strong></p>
-            {% if item.image %}
-                <img class="items-image" src="{{ item.image.url }}" alt="No Image" />
-            {% endif %}
-            <p class="items-description">{{ item.description }}</p>
-            <p class="items-date">{{ item.created_at }}</p>
-            <br />
-            <hr />
-        
+            <div class="item-wrapper">
+
+                <div class="image-wrapper">
+                    {% if item.image %}
+                    <img class="item-image" src="{{ item.image.url }}" alt="Image of {{ item.name }}" />
+                    {% endif %}
+                </div>
+
+                <div class="item-info-wrapper">
+                    <h3 class="item-info sub-heading"><a class="item-link" href="{% url 'item' item.id %}">{{ item.name }}</a></h3>
+                    <p class="item-info">Starting price: ${{ item.starting_price }}</h4>
+                    <p class="item-info">Posted by: <strong>{{ item.user.username }}</strong></p>
+                    <p class="item-info">Category: <strong>{{ item.category }}</strong></p>
+                    <p class="item-info">{{ item.created_at }}</p>
+                </div>
+            
+            </div>
         {% empty %}
             <h3 class="sub-heading">{{ empty }}</h3>
         {% endfor %}
