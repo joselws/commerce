@@ -10,80 +10,99 @@
             integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" 
             crossorigin="anonymous" 
         />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link type="text/css" rel="stylesheet" href="{% static 'styles.css' %}" />
     </head>
 
+
     <body>
         <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid nav-content-container">
+            <div id="nav-content-container" class="container-fluid">
                 <button class="navbar-toggler nav-container-item" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggleExternalContent" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <p class="nav-container-item nav-app-title">Commerce</p>
+                <a class="nav-container-item nav-app-title" href="{% url 'index' %}">Commerce</a>
                 <a href="https://joselws.github.io/" target="_blank" class="nav-container-item personal-link">By joselws</a>
             </div>
         </nav>
 
-        <div class="collapse" id="navbarToggleExternalContent">
-            <div class="bg-dark p-4">
-
-                {% if user.is_authenticated %}
-                <p class="auth-text">Welcome <strong>{{ user.username }}</strong>!</p>
-                {% else %}
-                <p class="auth-text">Not signed in</p>
-                {% endif %}
-
-                <div class="nav-lists-wrapper">
-                    <ul class="nav-ul">
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'index' %}">Active Items</a>
-                        </li>
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'category' %}">Categories</a>
-                        </li>
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'populars' %}">Most Populars</a>
-                        </li>
-                    </ul>
+        <main id="main-container">
+            <aside class="collapse" id="navbarToggleExternalContent">
+                <div id="links-section" class="bg-dark p-4">
     
                     {% if user.is_authenticated %}
-                    <ul class="nav-ul">
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'create' %}">Create item</a>
-                        </li>
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'my_items' %}">My items</a>
-                        </li>
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'watchlist' %}">Watchlist</a>
-                        </li>
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'logout' %}">Log Out</a>
-                        </li>
-                    </ul>
-    
+                    <p class="auth-text">Welcome <strong>{{ user.username }}</strong>!</p>
                     {% else %}
-                    <ul class="nav-ul">
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'login' %}">Log In</a>
-                        </li>
-                        <li class="list-item">
-                            <a class="list-link" href="{% url 'register' %}">Register</a>
-                        </li>
-                    </ul>
+                    <p class="auth-text">Not signed in</p>
                     {% endif %}
+    
+                    <div class="nav-lists-wrapper">
+                        <ul class="nav-ul">
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'index' %}">Active Items</a>
+                            </li>
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'category' %}">Categories</a>
+                            </li>
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'populars' %}">Most Populars</a>
+                            </li>
+                        </ul>
+        
+                        {% if user.is_authenticated %}
+                        <ul class="nav-ul">
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'create' %}">Create item</a>
+                            </li>
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'my_items' %}">My items</a>
+                            </li>
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'watchlist' %}">Watchlist</a>
+                            </li>
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'logout' %}">Log Out</a>
+                            </li>
+                        </ul>
+        
+                        {% else %}
+                        <ul class="nav-ul">
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'login' %}">Log In</a>
+                            </li>
+                            <li class="list-item">
+                                <a class="list-link" href="{% url 'register' %}">Register</a>
+                            </li>
+                        </ul>
+                        {% endif %}
+                    </div>
                 </div>
+            </aside>
+        
+            <section id="page-section-wrapper">
+                <header class="page-header">
+                    <h2 class="page-title">{% block header %}{% endblock %}</h2>
+                </header>
+        
+                {% block body %}
+                {% endblock %}
+            </section>
+        
+        </main>
+
+
+        <footer class="footer-wrapper bg-dark">
+            <div class="footer-info-wrapper">
+                <h5 class="footer-info">Made by <a class="footer-link" href="https://joselws.github.io/" target="_blank" ">Jose Wilhelm</a></h5>
+                <a class="footer-info footer-link" target="_blank" href="https://github.com/joselws/commerce">Source code</a>
             </div>
-        </div>
 
-        <header class="page-header">
-            <h2 class="page-title">{% block header %}{% endblock %}</h2>
-        </header>
-
-        <hr />
-
-        {% block body %}
-        {% endblock %}
+            <div class="social-links-wrapper">
+                <p class="social-links"><a class="footer-link" target="_blank" href="https://twitter.com/joselws9"><span class="fa fa-twitter"></span> Twitter: @joselws9</a></p>
+                <p class="social-links"><a class="footer-link" target="_blank" href="https://www.linkedin.com/in/jose-wilhelm-19a5b9220/"><span class="fa fa-linkedin"></span> Linkedin: Jose Wilhelm</a></p>
+                <p class="social-links"><a class="footer-link" target="_blank" href="https://github.com/joselws"><span class="fa fa-github"></span> Github: github.com/joselws</a></p> 
+            </div>
+        </footer>
         
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" 

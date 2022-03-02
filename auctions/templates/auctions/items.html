@@ -6,19 +6,21 @@
 
 {% block body %}
 
+    <!-- Render all available requested items -->
     <div class="all-items-wrapper">
-        <!-- Render all available requested items -->
+
         {% for item in items %}
             <div class="item-wrapper">
-
+    
+                <h3 class="item-info sub-heading"><a class="item-link" href="{% url 'item' item.id %}">{{ item.name }}</a></h3>
+                
                 <div class="image-wrapper">
                     {% if item.image %}
                     <img class="item-image" src="{{ item.image.url }}" alt="Image of {{ item.name }}" />
                     {% endif %}
                 </div>
-
+    
                 <div class="item-info-wrapper">
-                    <h3 class="item-info sub-heading"><a class="item-link" href="{% url 'item' item.id %}">{{ item.name }}</a></h3>
                     <p class="item-info">Starting price: ${{ item.starting_price }}</h4>
                     <p class="item-info">Posted by: <strong>{{ item.user.username }}</strong></p>
                     <p class="item-info">Category: <strong>{{ item.category }}</strong></p>
@@ -26,9 +28,12 @@
                 </div>
             
             </div>
+    
+            <hr />
         {% empty %}
             <h3 class="sub-heading">{{ empty }}</h3>
         {% endfor %}
+
     </div>
 
 {% endblock %}
