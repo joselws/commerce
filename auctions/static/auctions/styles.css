@@ -215,6 +215,21 @@ a {
 }
 
 
+/****** CATEGORIES.HTML ******/
+
+.categories-wrapper .heading {
+    text-align: center;
+}
+
+.category-list {
+    list-style-type: none;
+    margin-top: 30px;
+}
+
+.category-item {
+    margin: 8px 0;
+}
+
 
 /****** RESPONSIVE DESIGN FOR DESKTOP SCREENS ******/
 
