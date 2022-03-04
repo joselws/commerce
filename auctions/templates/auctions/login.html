@@ -12,9 +12,9 @@
     
         <form class="login-form-wrapper" action="{% url 'login' %}" method="post">
             {% csrf_token %}
-            <input autofocus class="login-username" type="text" name="username" placeholder="Username">
-            <input class="login-password" type="password" name="password" placeholder="Password">
-            <input class="login-btn" type="submit" value="Login">
+            <input autofocus class="login-username form-control" type="text" name="username" placeholder="Username">
+            <input class="login-password form-control" type="password" name="password" placeholder="Password">
+            <input class="login-btn btn btn-primary" type="submit" value="Login">
         </form>
 
         <p class="login-info">Don't have an account? <a class="link" href="{% url 'register' %}">Register here.</a></p>
