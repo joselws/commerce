@@ -12,10 +12,10 @@
     
         <form class="register-form" action="{% url 'register' %}" method="post">
             {% csrf_token %}
-            <input class="register-username" autofocus type="text" name="username" placeholder="Username">
-            <input class="register-password" type="password" name="password" placeholder="Password">
-            <input class="register-password" type="password" name="confirmation" placeholder="Confirm Password">
-            <input class="register-btn" type="submit" value="Register">
+            <input class="register-username form-control" autofocus type="text" name="username" placeholder="Username">
+            <input class="register-password form-control" type="password" name="password" placeholder="Password">
+            <input class="register-password form-control" type="password" name="confirmation" placeholder="Confirm Password">
+            <input class="btn btn-primary register-btn" type="submit" value="Register">
         </form>
     
         <p class="register-info">Already have an account? <a class="link" href="{% url 'login' %}">Log In here.</a></p>
