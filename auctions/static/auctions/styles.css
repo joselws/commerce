@@ -154,7 +154,8 @@ a {
     flex-direction: column;
     align-content: center;
     justify-content: center;
-    margin: 20px 0;
+    width: 80%;
+    margin: 20px auto;
 }
 
 .image-wrapper {
@@ -180,13 +181,10 @@ a {
     margin-top: 3px;
     margin-bottom: 3px;
     margin-left: 10px;
-    font-size: 0.8rem;
     text-align: center;
 }
 
-.item-sub-heading {
-    margin-top: 3px;
-    margin-bottom: 3px;
+.item-sub-heading, .empty-sub-heading {
     margin-left: 10px;
     text-align: center;
 }
@@ -220,8 +218,11 @@ a {
 
 /****** CATEGORIES.HTML ******/
 
-.categories-wrapper .heading {
+.categories-wrapper {
+    width: 75%;
     text-align: center;
+    margin: 0 auto;
+    margin-bottom: 30px;
 }
 
 .category-list {
@@ -231,6 +232,7 @@ a {
 
 .category-item {
     margin: 8px 0;
+    text-align: start;
 }
 
 
@@ -314,6 +316,41 @@ a {
 .item-back-link {
     margin-bottom: 20px;
 }
+
+
+/****** CREATE.HTML ******/
+
+.create-wrapper, .edit-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.create-form, .edit-form {
+    max-width: 94%;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.create-form input, .edit-form input, 
+.create-description-textarea, .edit-description-textarea, 
+.create-category-select, .edit-category-select {
+    margin-bottom: 25px;
+}
+
+.create-submit-btn, .edit-submit-btn {
+    align-self: center;
+    justify-self: center;
+    margin-bottom: 20px;
+}
+
+
+/****** EDIT.HTML ******/
+
+
 
 
 

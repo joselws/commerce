@@ -2,9 +2,10 @@
 
 {% block title %}Edit{% endblock %}
 
+{% block header %}Edit{% endblock %}
+
 {% block body %}
     <div class="edit-wrapper">
-        <h2 class="heading">Edit your item</h2>
         
         {% if message %}
             <strong class="edit-error-message">{{ message }}</strong>
@@ -14,33 +15,29 @@
         <form class="edit-form" action="{% url 'edit' item.id %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <!-- Name of the item (required)-->
-            <label class="edit-name-label" for="name">Name: </label>
-            <input class="edit-name-input" type="text" name="name" id="name" placeholder="Item Name" value="{{ item.name }}" required />
-            <br />
+            <label class="edit-name-label form-label" for="name">Name: </label>
+            <input class="edit-name-input form-control" type="text" name="name" id="name" placeholder="Item Name" value="{{ item.name }}" required />
     
             <!-- Description of the item (optional)-->
-            <label class="edit-description-label" for="description">Item description:</label>
-            <textarea class="edit-description-textarea" name="description" id="description" rows="10" cols="70" placeholder="Item description">{{ item.description }}</textarea>
-            <br />
+            <label class="edit-description-label form-label" for="description">Item description:</label>
+            <textarea class="edit-description-textarea form-control" name="description" id="description" placeholder="Item description">{{ item.description }}</textarea>
             
             <!-- Category of the item(optional) -->
-            <label class="edit-category-label" for="category">Category: </label>
-            <select class="edit-category-select" name="category" size="5" id="category" required>
+            <label class="edit-category-label form-label" for="category">Category: </label>
+            <select class="edit-category-select form-select" name="category" size="5" id="category" required>
                 {% for category in categories %}
                     <option class="edit-category-option" value="{{ category }}">{{ category }}</option>
                 {% endfor %}
             </select>
-            <br />
     
             <!-- Image for the item (optional) -->
-            <label class="edit-image-label" for="image">
+            <label class="edit-image-label form-label" for="image">
                 <strong>Optional</strong> Image: 
             </label>
-            <input class="edit-image-input" type="file" id="image" name="image" placeholder="Image" />
-            <br />
+            <input class="edit-image-input form-control" type="file" id="image" name="image" placeholder="Image" />
     
             <!-- Submit button -->
-            <input class="edit-submit-btn" type="submit" value="Submit" />
+            <input class="edit-submit-btn btn btn-primary" type="submit" value="Submit" />
         </form>
     </div>
 
