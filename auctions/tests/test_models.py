@@ -27,12 +27,8 @@ class ItemTestCase(TestCase):
         item_invalid_image.image.save('gas_prices.csv', File(open(invalid_img_path, 'rb')))
 
     def tearDown(self):
-        # Delete image files from project folder
-        item_valid_image = Item.objects.get(name="valid_img")
-        item_invalid_image = Item.objects.get(name="invalid_img")
-
-        item_valid_image.image.delete()
-        item_invalid_image.image.delete()
+        for item in Item.objects.all():
+            item.image.delete()
 
 
     def test_img_url(self):
@@ -41,7 +37,7 @@ class ItemTestCase(TestCase):
 
     def test_no_img_url(self):
         item_no_image = Item.objects.get(name="no_img")
-        self.assertEqual(item_no_image.image_url, '')
+        self.assertIn('empty', item_no_image.image_url)
 
     def test_increase_popularity(self):
         """ Test the increase popularity method """

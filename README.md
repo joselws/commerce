@@ -12,6 +12,7 @@
 ### Possible feature ideas for the future:
 
 - move to django forms
+- speed up tests
 - split into multiple apps (add app_name to urls.py files and change the links to include the app name)
 - newest view (sorted by created_at)
 - search by price

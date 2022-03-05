@@ -12,7 +12,7 @@
         {% for item in items %}
             <div class="item-wrapper">
     
-                <h3 class="item-info sub-heading"><a class="item-link" href="{% url 'item' item.id %}">{{ item.name }}</a></h3>
+                <h3 class="item-sub-heading"><a class="item-link" href="{% url 'item' item.id %}">{{ item.name }}</a></h3>
                 
                 <div class="image-wrapper">
                     {% if item.image %}

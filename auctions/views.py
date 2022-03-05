@@ -156,6 +156,7 @@ def item(request, item_id):
                 # Switch its value between True and False
                 item.active = not item.active
                 item.save()
+                return HttpResponseRedirect(reverse('item', args=(item.id,)))
         else:
             return HttpResponseRedirect(reverse('login'))
 

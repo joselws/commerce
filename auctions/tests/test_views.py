@@ -30,11 +30,8 @@ class IndexTestCase(TestCase):
 
     def tearDown(self):
         # Delete image files from project folder
-        item_valid_image = Item.objects.get(name="valid_img")
-        item_invalid_image = Item.objects.get(name="invalid_img")
-
-        item_valid_image.image.delete()
-        item_invalid_image.image.delete()
+        for item in Item.objects.all():
+            item.image.delete()
 
     def test_index_view(self):
         client = Client()
@@ -347,7 +344,7 @@ class CreateTestCase(TestCase):
         except ValueError:
             image_url = item.image_url  #property method
         finally:
-            self.assertEqual(image_url, '')
+            self.assertIn('empty', image_url)
 
     def test_authenticated_create_valid_post_no_category(self):
         testuser = User.objects.get(username="testuser")
@@ -511,6 +508,9 @@ class ItemViewTestCase(TestCase):
         Comment.objects.create(user=testuser2, item=item_bids_comments, comment="Great!")
         Comment.objects.create(user=testuser2, item=item_bids_comments, comment="Awesome!")
         
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
 
     def test_item_exists_with_data_GET(self):
         client = Client()
@@ -672,6 +672,10 @@ class WatchViewTestCase(TestCase):
         testuser1 = User.objects.create_user(username='testuser1', password='testuser1')
         item = Item.objects.create(name='item', starting_price=5, user=testuser, category=other)
 
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
+
     
     def test_nonauth_watch_GET(self):
         client = Client()
@@ -775,6 +779,9 @@ class BidViewTestCase(TestCase):
         Bid.objects.create(user=testuser2, item=item_bids, bid=40)
         Bid.objects.create(user=testuser2, item=item_bids, bid=50)
 
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
 
     def test_nonauth_item_exists_bid_GET(self):
         """ Redirects user to /item """
@@ -926,6 +933,11 @@ class CommentViewTestCase(TestCase):
         Comment.objects.create(user=testuser, item=item_comments, comment="comment 2")
         Comment.objects.create(user=testuser, item=item_comments, comment="comment 3")
 
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
+
+
     def test_item_doesnt_exists_bid_GET(self):
         """ nonexistant items go 404 """
         client = Client()
@@ -1015,6 +1027,10 @@ class WatchlistTestCase(TestCase):
         item1 = Item.objects.create(name='item1', user=testuser, starting_price=5, category=other)
         item2 = Item.objects.create(name='item2', user=testuser, starting_price=5, category=other)
         item3 = Item.objects.create(name='item3', user=testuser, starting_price=5, category=other)
+
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
 
     
     def test_unauthenticated_GET(self):
@@ -1132,6 +1148,10 @@ class CategoryPageViewTestCase(TestCase):
         item_other_3 = Item.objects.create(name='item other 3', starting_price=30, category=other, user=testuser)
         
         item_house = Item.objects.create(name='item house', starting_price=30, category=house, user=testuser)
+
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
 
     
     def test_render_other_category_items_GET(self):
@@ -1347,7 +1367,7 @@ class EditViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.request['PATH_INFO'], f'/edit/{item.id}')
         self.assertEqual(response.context['item'], item)
-        self.assertEqual(response.context['item'].image_url, '')
+        self.assertIn('empty', response.context['item'].image_url)
         self.assertEqual(response.context['message'], 'Not a valid image format!')
         self.assertQuerysetEqual(response.context['categories'], list(Category.objects.all()))
         self.assertTemplateUsed(response, 'auctions/edit.html')
@@ -1363,6 +1383,10 @@ class DeleteViewTestCase(TestCase):
 
         item1 = Item.objects.create(name='item1', user=testuser, category=other, starting_price=5)
         item2 = Item.objects.create(name='item2', user=testuser, category=other, starting_price=5)
+
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
 
     
     def test_delete_item_doesnt_exist(self):
@@ -1444,6 +1468,10 @@ class PopularsTestCase(TestCase):
 
         item2.increase_popularity()
 
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
+
     
     def test_most_popular_GET(self):
         """ Most popular items are rendered first """
@@ -1486,6 +1514,10 @@ class MyItemsTestCase(TestCase):
         testuser2 = User.objects.create_user(username='testuser2', password='testuser2')
         item1 = Item.objects.create(name='item1', starting_price=23, user=testuser, category=other)
         item2 = Item.objects.create(name='item2', starting_price=23, user=testuser, category=other)
+
+    def tearDown(self):
+        for item in Item.objects.all():
+            item.image.delete()
 
     
     def test_auth_my_items_GET(self):

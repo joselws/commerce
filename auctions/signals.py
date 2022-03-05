@@ -8,7 +8,7 @@ import os
 @receiver(post_save, sender=Item)
 def add_default_image(sender, instance, *args, **kwargs):
     """ Set the image property of Item to the default if no image was uploaded on creation """
-    if not instance.image_url:
+    if not instance.image_url or not os.path.exists(instance.image.path):
         instance.image.save('empty.jpg', File(open('auctions/empty.jpg', 'rb')))
 
 
