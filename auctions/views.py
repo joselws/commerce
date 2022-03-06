@@ -339,7 +339,7 @@ def edit(request, item_id):
                     item.image = ''
                 else:
                     if image_is_valid(image):
-                        item.image
+                        item.image = image
                     else:
                         return render(request, 'auctions/edit.html', {
                             'message': 'Not a valid image format!',
