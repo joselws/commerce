@@ -32,9 +32,10 @@ def delete_image_update(sender, instance, *args, **kwargs):
 
         # User didn't upload new image
         except:
-            instance.image = old_image
+            # instance.image = old_image
+            pass
         
-        if old_image != new_image and new_image is not None:
+        if old_image.path != new_image and new_image is not None:
             if os.path.exists(old_image.path):
                 os.remove(old_image.path)
 

@@ -2,12 +2,10 @@
 
 ### Pending features (to do list):
 
-- Overall CSS (layout, styles, responsive design, footer)
 - rename my_items to user_items
 - user username click redirect to user_items
 - category name click redirect to category_page 
 - signals testing
-- utils function to format datetime
 
 ### Possible feature ideas for the future:
 

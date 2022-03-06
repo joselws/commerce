@@ -294,6 +294,11 @@ a {
     margin: 10px 0px;
 }
 
+.comment-empty {
+    text-align: center;
+    margin: 10px auto;
+}
+
 .item-comment-form, .item-bid-form {
     display: flex;
     flex-direction: column;

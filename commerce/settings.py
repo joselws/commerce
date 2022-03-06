@@ -25,7 +25,7 @@ SECRET_KEY = '6ps8j!crjgrxt34cqbqn7x&b3y%(fny8k8nh21+qa)%ws3fh!q'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['commerce-joselws.herokuapp.com']
+ALLOWED_HOSTS = ['commerce-joselws.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
@@ -76,14 +76,14 @@ WSGI_APPLICATION = 'commerce.wsgi.application'
 
 DATABASES = {
     'default': {
-        #'ENGINE': 'django.db.backends.sqlite3',
-        #'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'd5did2uhskv7r1',
-        'HOST': 'ec2-52-44-209-165.compute-1.amazonaws.com',
-        'USER': 'rgcafjzatlunfg',
-        'PASSWORD': '0075d0a404b618ec1516aeab31e9972317b848137f7eed3d416ed4f3e5bc1857',
-        'PORT': '5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        # 'NAME': 'd5did2uhskv7r1',
+        # 'HOST': 'ec2-52-44-209-165.compute-1.amazonaws.com',
+        # 'USER': 'rgcafjzatlunfg',
+        # 'PASSWORD': '0075d0a404b618ec1516aeab31e9972317b848137f7eed3d416ed4f3e5bc1857',
+        # 'PORT': '5432'
     }
 }
 
