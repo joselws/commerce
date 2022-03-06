@@ -9,7 +9,7 @@ In this project, you can:
 - Create an account (passwords are hashed, so don't worry, we also don't prompt for email)
 - Login or logout anytime you wish
 - Post items by a starting price and an optional image if you wish
-    - **Important**: For the time being, the app only accepts jpg, jpeg, and png image formats no longer than 2mb, otherwise it won't work. I had to do it that way because Heroku might complain since it's a free account.
+    - **Important**: For the time being, the app only accepts jpg, jpeg, and png image formats no longer than 2mb, otherwise it won't work. I had to do it that way because Heroku might complain since it's a free account. Note that Heroku uploaded pictures daily, so your item pictures won't be visible after a while; you have to reupload them, until I connect the static assets to a dedicated static files warehouse server like AWS.
 - Bid on other users items
 - Comment on other user items
 - Edit your item
