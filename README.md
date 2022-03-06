@@ -1,5 +1,23 @@
 # commerce
 
+Deployed on https://commerce-joselws.herokuapp.com/
+
+## About
+
+In this project, you can:
+
+- Create an account (passwords are hashed, so don't worry, we also don't prompt for email)
+- Login or logout anytime you wish
+- Post items by a starting price and an optional image if you wish
+    - **Important**: For the time being, the app only accepts jpg, jpeg, and png image formats no longer than 2mb, otherwise it won't work. I had to do it that way because Heroku might complain since it's a free account.
+- Bid on other users items
+- Comment on other user items
+- Edit your item
+- Delete your item
+- Add or remove items from your watchlist
+- Filter items by categories, or browse the most recent or most popular ones. You may also browse your posted items or your watchlist
+- Close the auction on your item, letting the highest bid on it and its user win the auction.
+
 ### Pending features (to do list):
 
 - rename my_items to user_items
@@ -22,3 +40,4 @@
 - delete comment 
 - user panel for profile config
 - admin panel customization
+- turn it into a Fullstack Single Page Application with full-fledged features if someone is willing to pay for it **wink**
