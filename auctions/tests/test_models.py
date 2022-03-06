@@ -1,6 +1,7 @@
 from django.test import TestCase
 from auctions.models import Category, User, Item
 from django.core.files import File
+import os
 
 
 
@@ -28,7 +29,7 @@ class ItemTestCase(TestCase):
 
     def tearDown(self):
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
 
 
     def test_img_url(self):
@@ -60,3 +61,16 @@ class ItemTestCase(TestCase):
         item.refresh_from_db()
 
         self.assertEqual(item.popularity, 4)
+
+    def test_elapsed_time(self):
+        """ Time is formated correctly """
+        item = Item.objects.first()
+
+        self.assertEqual(item.elapsed_time(200), '3 minutes ago')
+        self.assertEqual(item.elapsed_time(3599), '59 minutes ago')
+        self.assertEqual(item.elapsed_time(64800), '18 hours ago')
+        self.assertEqual(item.elapsed_time(86300), '23 hours ago')
+        self.assertEqual(item.elapsed_time(433000), '5 days ago')
+        self.assertEqual(item.elapsed_time(2100000), '24 days ago')
+        self.assertEqual(item.elapsed_time(27000000), '10 months ago')
+        self.assertEqual(item.elapsed_time(32000000), '1 year ago')

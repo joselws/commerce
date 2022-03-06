@@ -4,6 +4,7 @@ from auctions.models import Category, User, Item, Bid, Comment
 from django.db.models import Max
 from django.core.files import File
 from django.urls import reverse
+import os
 
 
 ##### Index view #####
@@ -31,7 +32,7 @@ class IndexTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
 
     def test_index_view(self):
         client = Client()
@@ -50,7 +51,6 @@ class IndexTestCase(TestCase):
 class LoginTestCase(TestCase):
     
     def setUp(self):
-
         # Create user
         User.objects.create_user(username="testuser1", password="testuser1")
         
@@ -99,7 +99,7 @@ class LogoutTestCase(TestCase):
     def setUp(self):
 
         User.objects.create_user(username="testuser1", password="testuser1")
-
+        
     
     def test_authenticated_logout(self):
         client = Client()
@@ -130,7 +130,7 @@ class RegisterTestCase(TestCase):
     def setUp(self):
 
         User.objects.create_user(username="testuser1", password="testuser1")
-
+        
 
     def test_register_get(self):
         client = Client()
@@ -221,8 +221,10 @@ class CreateTestCase(TestCase):
         house = Category.objects.create(category="House")
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     
     def test_nonauthenticate_create_get_request(self):
@@ -507,10 +509,12 @@ class ItemViewTestCase(TestCase):
         Comment.objects.create(user=testuser2, item=item_bids_comments, comment="Nice!")
         Comment.objects.create(user=testuser2, item=item_bids_comments, comment="Great!")
         Comment.objects.create(user=testuser2, item=item_bids_comments, comment="Awesome!")
-        
+
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     def test_item_exists_with_data_GET(self):
         client = Client()
@@ -673,8 +677,10 @@ class WatchViewTestCase(TestCase):
         item = Item.objects.create(name='item', starting_price=5, user=testuser, category=other)
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     
     def test_nonauth_watch_GET(self):
@@ -780,8 +786,10 @@ class BidViewTestCase(TestCase):
         Bid.objects.create(user=testuser2, item=item_bids, bid=50)
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     def test_nonauth_item_exists_bid_GET(self):
         """ Redirects user to /item """
@@ -934,8 +942,10 @@ class CommentViewTestCase(TestCase):
         Comment.objects.create(user=testuser, item=item_comments, comment="comment 3")
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
 
     def test_item_doesnt_exists_bid_GET(self):
@@ -1029,8 +1039,10 @@ class WatchlistTestCase(TestCase):
         item3 = Item.objects.create(name='item3', user=testuser, starting_price=5, category=other)
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     
     def test_unauthenticated_GET(self):
@@ -1097,6 +1109,7 @@ class CategoryViewTestCase(TestCase):
         Category.objects.create(category='Books')
         Category.objects.create(category='Games')
 
+
     def test_categories_GET(self):
         """ Render template normally on GET """
         client = Client()
@@ -1150,9 +1163,10 @@ class CategoryPageViewTestCase(TestCase):
         item_house = Item.objects.create(name='item house', starting_price=30, category=house, user=testuser)
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
-
+            os.remove(item.image.path)
+        
     
     def test_render_other_category_items_GET(self):
         """ GET requests render the items normally """
@@ -1257,8 +1271,10 @@ class EditViewTestCase(TestCase):
         item = Item.objects.create(name='item', starting_price=20, user=testuser, category=other)
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     
     def test_edit_item_doesnt_exist(self):
@@ -1385,8 +1401,10 @@ class DeleteViewTestCase(TestCase):
         item2 = Item.objects.create(name='item2', user=testuser, category=other, starting_price=5)
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     
     def test_delete_item_doesnt_exist(self):
@@ -1469,8 +1487,10 @@ class PopularsTestCase(TestCase):
         item2.increase_popularity()
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     
     def test_most_popular_GET(self):
@@ -1516,8 +1536,10 @@ class MyItemsTestCase(TestCase):
         item2 = Item.objects.create(name='item2', starting_price=23, user=testuser, category=other)
 
     def tearDown(self):
+        # Delete image files from project folder
         for item in Item.objects.all():
-            item.image.delete()
+            os.remove(item.image.path)
+        
 
     
     def test_auth_my_items_GET(self):

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from datetime import datetime
 
 
 class User(AbstractUser):
@@ -77,6 +78,50 @@ class Item(models.Model):
 		self.save()
 
 
+	def elapsed_time(self, time_value=0):
+		""" Calculates the difference between created_at and now() """
+		time = ''
+
+		# Comment or bid datetime or testing time
+		if time_value:
+			# Comment or bid timestamp
+			if type(time_value) is float:
+				time_created = round(datetime.now().timestamp() - time_value)
+			# testing time
+			else:
+				time_created = time_value
+
+		# item instance
+		else:
+			time_created = round(datetime.now().timestamp() - self.created_at.timestamp())
+		
+		if 0 <= time_created < 3600:
+			time_created = time_created // 60
+			time += str(time_created) + ' minute'
+
+		elif 3600 < time_created < 86400:
+			time_created = time_created // 3600
+			time += str(time_created) + ' hour'
+
+		elif 86400 < time_created < 2628000:
+			time_created = time_created // 86400
+			time += str(time_created) + ' day' 
+
+		elif 2628000 < time_created < 31536000:
+			time_created = time_created // 2628000
+			time += str(time_created) + ' month'
+
+		elif time_created > 31536000: 
+			time_created = time_created // 31536000
+			time += str(time_created) + ' year'
+
+		if time_created != 1:
+			time += 's'     # pluralize
+
+		time += ' ago'
+		return time
+
+
 class Bid(models.Model):
 	"""The bid for every item in the auction"""
 	bid = models.DecimalField(max_digits=10, decimal_places=2)
@@ -92,6 +137,9 @@ class Bid(models.Model):
 	
 	def __str__(self):
 		return f"Bid {self.bid} on {self.item.name} by {self.user.username}"
+
+	def bid_time(self):
+		return self.item.elapsed_time(self.bid_date.timestamp())
 
 
 class Comment(models.Model):
@@ -110,4 +158,7 @@ class Comment(models.Model):
 	
 	def __str__(self):
 		return f"Comment by {self.user.username} on {self.item.name} at {self.date}"
+
+	def comment_time(self):
+		return self.item.elapsed_time(self.date.timestamp())
 

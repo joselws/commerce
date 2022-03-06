@@ -14,7 +14,7 @@
         <!-- item information and watchlist logic -->
         <p class="item-detail">Category: {{ item.category }}</p>
         <p class="item-detail">Posted by: <strong>{{ item.user.username }}</strong></p>
-        <p class="item-detail">Created at: {{ item.created_at }}</p>
+        <p class="item-detail">{{ item.elapsed_time }}</p>
     
         <!-- Only show the watchlist options for authenticated users
             whose items don't belong to them (you can't watchlist a
@@ -96,7 +96,7 @@
                         <tr class="item-table-row">
                             <td class="item-table-data">{{ bid.user }}</td>
                             <td class="item-table-data">{{ bid.bid }}</td>
-                            <td class="item-table-data">{{ bid.bid_date }}</td>
+                            <td class="item-table-data">{{ bid.bid_time }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -128,7 +128,7 @@
                 <div class="card comment-wrapper">
                     <div class="card-body">
                         <h6 class="comment-user card-title">{{ comment.user.username }}</h6>
-                        <p class="comment-date card-subtitle text-muted">{{ comment.date }}</p>
+                        <p class="comment-date card-subtitle text-muted">{{ comment.comment_time }}</p>
                         <p class="comment-comment card-text">{{ comment.comment }}</p>
                     </div>
                 </div>
