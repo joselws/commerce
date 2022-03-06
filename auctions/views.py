@@ -28,6 +28,7 @@ def login_view(request):
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
+        print(user, username, password)
 
         # Check if authentication successful
         if user is not None:
@@ -65,7 +66,8 @@ def register(request):
 
             # Attempt to create new user
             try:
-                user = User.objects.create_user(username, password)
+                # empty email field necessary or authenticate() wont work
+                user = User.objects.create_user(username, '', password)
                 user.save()
             except IntegrityError:
                 return render(request, "auctions/register.html", {
