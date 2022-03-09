@@ -24,6 +24,11 @@ In this project, you can:
 - user username click redirect to user_items
 - category name click redirect to category_page 
 - signals testing
+- secret key safekeeping within project
+- heroku branch
+    - default image
+    - remove unnecessary signals
+    - keep postgres credentials safe
 
 ### Possible feature ideas for the future:
 
