@@ -32,7 +32,10 @@ class IndexTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
 
     def test_index_view(self):
         client = Client()
@@ -129,7 +132,7 @@ class RegisterTestCase(TestCase):
 
     def setUp(self):
 
-        User.objects.create_user(username="testuser1", password="testuser1")
+        User.objects.create_user("testuser1", '', "testuser1")
         
 
     def test_register_get(self):
@@ -210,6 +213,30 @@ class RegisterTestCase(TestCase):
         self.assertEqual(redirect_status_code, 302)
         self.assertTemplateUsed(response, 'auctions/items.html')
 
+    def test_empty_username_field_POST(self):
+        """ Username field must contain at least one character """
+        client = Client()
+        credentials = {'username': '', 'password': 'testuser2', 'confirmation': 'testuser2'}
+        response = client.post(reverse('register'), credentials, follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/register')
+        self.assertEqual(response.context['message'], 'Username must contain at least 1 letter.')
+        self.assertEqual(User.objects.all().count(), 1)
+        self.assertTemplateUsed(response, 'auctions/register.html')
+
+    def test_empty_password_field_POST(self):
+        """ Password field must not be empty """
+        client = Client()
+        credentials = {'username': 'testuser2', 'password': '', 'confirmation': ''}
+        response = client.post(reverse('register'), credentials, follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.request['PATH_INFO'], '/register')
+        self.assertEqual(response.context['message'], 'Password must be at least 1 character long.')
+        self.assertEqual(User.objects.all().count(), 1)
+        self.assertTemplateUsed(response, 'auctions/register.html')
+
 
 ##### Create view #####
 
@@ -223,7 +250,10 @@ class CreateTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     
@@ -346,7 +376,7 @@ class CreateTestCase(TestCase):
         except ValueError:
             image_url = item.image_url  #property method
         finally:
-            self.assertIn('empty', image_url)
+            self.assertEqual('', image_url)
 
     def test_authenticated_create_valid_post_no_category(self):
         testuser = User.objects.get(username="testuser")
@@ -513,7 +543,10 @@ class ItemViewTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     def test_item_exists_with_data_GET(self):
@@ -679,7 +712,10 @@ class WatchViewTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     
@@ -788,7 +824,10 @@ class BidViewTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     def test_nonauth_item_exists_bid_GET(self):
@@ -944,7 +983,10 @@ class CommentViewTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
 
@@ -1041,7 +1083,10 @@ class WatchlistTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     
@@ -1165,7 +1210,10 @@ class CategoryPageViewTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
     
     def test_render_other_category_items_GET(self):
@@ -1273,7 +1321,10 @@ class EditViewTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     
@@ -1383,7 +1434,7 @@ class EditViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.request['PATH_INFO'], f'/edit/{item.id}')
         self.assertEqual(response.context['item'], item)
-        self.assertIn('empty', response.context['item'].image_url)
+        self.assertEqual('', response.context['item'].image_url)
         self.assertEqual(response.context['message'], 'Not a valid image format!')
         self.assertQuerysetEqual(response.context['categories'], list(Category.objects.all()))
         self.assertTemplateUsed(response, 'auctions/edit.html')
@@ -1403,7 +1454,10 @@ class DeleteViewTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     
@@ -1489,7 +1543,10 @@ class PopularsTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     
@@ -1538,7 +1595,10 @@ class MyItemsTestCase(TestCase):
     def tearDown(self):
         # Delete image files from project folder
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
         
 
     

@@ -28,7 +28,6 @@ def login_view(request):
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
-        print(user, username, password)
 
         # Check if authentication successful
         if user is not None:
@@ -59,6 +58,12 @@ def register(request):
             # Ensure password matches confirmation
             password = request.POST["password"]
             confirmation = request.POST["confirmation"]
+
+            if len(password) == 0:
+                return render(request, "auctions/register.html", {
+                    "message": 'Password must be at least 1 character long.'
+                }) 
+
             if password != confirmation:
                 return render(request, "auctions/register.html", {
                     "message": "Passwords must match."
@@ -73,8 +78,13 @@ def register(request):
                 return render(request, "auctions/register.html", {
                     "message": "Username already taken."
                 })
-            login(request, user)
-            return HttpResponseRedirect(reverse("index"))
+            except ValueError:
+                return render(request, 'auctions/register.html', {
+                    'message': 'Username must contain at least 1 letter.'
+                })
+            else:
+                login(request, user)
+                return HttpResponseRedirect(reverse("index"))
 
         # user is authenticated
         else:

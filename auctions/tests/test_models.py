@@ -29,7 +29,10 @@ class ItemTestCase(TestCase):
 
     def tearDown(self):
         for item in Item.objects.all():
-            os.remove(item.image.path)
+            try:
+                os.remove(item.image.path)
+            except:
+                pass
 
 
     def test_img_url(self):
@@ -38,7 +41,7 @@ class ItemTestCase(TestCase):
 
     def test_no_img_url(self):
         item_no_image = Item.objects.get(name="no_img")
-        self.assertIn('empty', item_no_image.image_url)
+        self.assertEqual('', item_no_image.image_url)
 
     def test_increase_popularity(self):
         """ Test the increase popularity method """

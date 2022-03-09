@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 from datetime import datetime
+import os
 
 
 class User(AbstractUser):
@@ -43,7 +44,7 @@ class Item(models.Model):
 	updated_at = models.DateTimeField(auto_now=True)
 	
 	# users can optionally add an image for their item, and they're sent to 'static/auctions/images' folder
-	image = models.ImageField(blank=True, max_length=200)
+	image = models.ImageField(blank=True)
 
 	# Field that stores the name of users that have any item as their watchlist
 	watchlist = models.ManyToManyField(User, related_name="watchlist", blank=True)
@@ -61,10 +62,19 @@ class Item(models.Model):
 	@property
 	def image_url(self):
 		""" Handles no input image """
+		# Image exists
 		try:
 			img = self.image.url
+			imgpath = self.image.path
+
+		# Image doesn't exist
 		except:
 			img = ''
+			imgpath = ''
+		
+		if not os.path.exists(imgpath):
+			img = ''
+
 		return img
 
 	def increase_popularity(self):

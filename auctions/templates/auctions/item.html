@@ -64,8 +64,10 @@
             {% endif %}
         </div>
 
-        {% if item.image %}
+        {% if item.image_url %}
             <img class="item-page-image" src="{{ item.image.url }}" alt="{{ item.name }}" />
+        {% else %}    
+            <img class="item-page-image" src="../../static/auctions/empty.jpg" alt="{{ item.name }}" />
         {% endif %}
         <p class="item-detail">{{ item.description }}</p>
         <p class="item-detail">Starting price: <strong>${{ item.starting_price }}</strong></p>

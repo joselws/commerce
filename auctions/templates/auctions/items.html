@@ -15,8 +15,10 @@
                 <h3 class="item-sub-heading"><a class="item-link" href="{% url 'item' item.id %}">{{ item.name }}</a></h3>
                 
                 <div class="image-wrapper">
-                    {% if item.image %}
+                    {% if item.image_url %}
                     <img class="item-image" src="{{ item.image.url }}" alt="Image of {{ item.name }}" />
+                    {% else %}
+                    <img class="item-image" src="../../static/auctions/empty.jpg" alt="Image of {{ item.name }}" />
                     {% endif %}
                 </div>
     
