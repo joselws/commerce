@@ -25,9 +25,14 @@
             <!-- Category of the item(optional) -->
             <label class="edit-category-label form-label" for="category">Category: </label>
             <select class="edit-category-select form-select" name="category" size="5" id="category" required>
-                {% for category in categories %}
-                    <option class="edit-category-option" value="{{ category }}">{{ category }}</option>
-                {% endfor %}
+            {% for category in categories %}
+                {% if category == item.category %}
+                <option selected class="edit-category-option" value="{{ category }}">{{ category }}</option>
+                
+                {% else %}
+                <option class="edit-category-option" value="{{ category }}">{{ category }}</option>
+                {% endif %}
+            {% endfor %}
             </select>
     
             <!-- Image for the item (optional) -->

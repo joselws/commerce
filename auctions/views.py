@@ -141,7 +141,7 @@ def create(request):
 
             #If all went well, create the item and redirect the user to the index page
             item = Item.objects.create(name=name, description=description, starting_price=starting_price, 
-                image=image, category=category, user=user)
+                category=category, user=user)
             return HttpResponseRedirect(reverse("item", args=(item.id,)))
 
 
@@ -351,7 +351,7 @@ def edit(request, item_id):
                     item.image = ''
                 else:
                     if image_is_valid(image):
-                        item.image = image
+                        item.image = ''
                     else:
                         return render(request, 'auctions/edit.html', {
                             'message': 'Not a valid image format!',
